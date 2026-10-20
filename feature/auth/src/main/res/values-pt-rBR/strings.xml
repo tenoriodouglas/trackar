@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_auth_title">Trackar</string>
+    <string name="feature_auth_subtitle">Rastreamento veicular em tempo real</string>
+    <string name="feature_auth_email">E-mail</string>
+    <string name="feature_auth_password">Senha</string>
+    <string name="feature_auth_toggle_password">Mostrar ou ocultar senha</string>
+    <string name="feature_auth_sign_in">Entrar</string>
+    <string name="feature_auth_error_credentials">E-mail ou senha inválidos.</string>
+    <string name="feature_auth_error_network">Não foi possível entrar. Verifique sua conexão e tente novamente.</string>
+</resources>

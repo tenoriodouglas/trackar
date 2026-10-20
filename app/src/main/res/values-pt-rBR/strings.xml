@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_map">Mapa</string>
+    <string name="nav_vehicles">Veículos</string>
+</resources>

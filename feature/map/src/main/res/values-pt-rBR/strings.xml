@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_map_title">Mapa</string>
+    <string name="feature_map_connecting">Conectando…</string>
+    <string name="feature_map_offline">Sem conexão · exibindo últimas posições</string>
+    <string name="feature_map_speed_and_update">%1$s · %2$s</string>
+    <string name="feature_map_details">Detalhes</string>
+</resources>

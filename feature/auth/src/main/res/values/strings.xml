@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_auth_title">Trackar</string>
+    <string name="feature_auth_subtitle">Real-time vehicle tracking</string>
+    <string name="feature_auth_email">Email</string>
+    <string name="feature_auth_password">Password</string>
+    <string name="feature_auth_toggle_password">Show or hide password</string>
+    <string name="feature_auth_sign_in">Sign in</string>
+    <string name="feature_auth_error_credentials">Invalid email or password.</string>
+    <string name="feature_auth_error_network">Could not sign in. Check your connection and try again.</string>
+</resources>

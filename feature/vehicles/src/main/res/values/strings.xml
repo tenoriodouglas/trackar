@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_vehicles_title">Vehicles</string>
+    <string name="feature_vehicles_search">Search by name or ID</string>
+    <string name="feature_vehicles_empty">No vehicles found.</string>
+    <string name="feature_vehicles_no_position">No position yet</string>
+    <string name="feature_vehicles_logout">Sign out</string>
+    <string name="feature_vehicles_back">Back</string>
+    <string name="feature_vehicles_not_found">Vehicle not found.</string>
+    <string name="feature_vehicles_status">Status</string>
+    <string name="feature_vehicles_identifier">Device ID (IMEI)</string>
+    <string name="feature_vehicles_last_update">Last communication</string>
+    <string name="feature_vehicles_speed">Speed</string>
+    <string name="feature_vehicles_ignition">Ignition</string>
+    <string name="feature_vehicles_power">Power</string>
+    <string name="feature_vehicles_address">Location</string>
+    <string name="feature_vehicles_fix_time">GPS fix</string>
+    <string name="feature_vehicles_navigate">Navigate to vehicle</string>
+    <string name="feature_vehicles_on">On</string>
+    <string name="feature_vehicles_off">Off</string>
+    <string name="feature_vehicles_volts">%1$.1f V</string>
+</resources>
