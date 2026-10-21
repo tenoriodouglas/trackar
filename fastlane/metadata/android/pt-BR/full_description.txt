@@ -1,6 +1,8 @@
 Trackar mostra em tempo real onde estão seus veículos equipados com rastreadores GPS/M2M.
 
 • Mapa ao vivo com todos os veículos e status (online, offline)
+• Seta mostrando a direção em que o veículo está indo, com modo "seguir"
+• Histórico de trajetos por dia: rota no mapa, reprodução, distância e paradas
 • Velocidade, ignição, tensão da bateria e endereço da última posição
 • Lista com busca por nome ou IMEI
 • Navegação até o veículo com um toque

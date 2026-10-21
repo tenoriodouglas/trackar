@@ -8,6 +8,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object MapNavKey : NavKey
 
-fun EntryProviderScope<NavKey>.mapEntry(onOpenDetails: (String) -> Unit) {
-    entry<MapNavKey> { MapRoute(onOpenDetails = onOpenDetails) }
+fun EntryProviderScope<NavKey>.mapEntry(onOpenDetails: (String) -> Unit, onOpenHistory: (String) -> Unit) {
+    entry<MapNavKey> { MapRoute(onOpenDetails = onOpenDetails, onOpenHistory = onOpenHistory) }
 }

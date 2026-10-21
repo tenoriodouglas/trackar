@@ -12,7 +12,13 @@ data object VehicleListNavKey : NavKey
 @Serializable
 data class VehicleDetailNavKey(val vehicleId: String) : NavKey
 
-fun EntryProviderScope<NavKey>.vehiclesEntries(onVehicleClick: (String) -> Unit, onBack: () -> Unit) {
+fun EntryProviderScope<NavKey>.vehiclesEntries(
+    onVehicleClick: (String) -> Unit,
+    onOpenHistory: (String) -> Unit,
+    onBack: () -> Unit
+) {
     entry<VehicleListNavKey> { VehicleListRoute(onVehicleClick = onVehicleClick) }
-    entry<VehicleDetailNavKey> { key -> VehicleDetailRoute(vehicleId = key.vehicleId, onBack = onBack) }
+    entry<VehicleDetailNavKey> { key ->
+        VehicleDetailRoute(vehicleId = key.vehicleId, onBack = onBack, onOpenHistory = { onOpenHistory(key.vehicleId) })
+    }
 }

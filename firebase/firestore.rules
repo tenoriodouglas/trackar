@@ -7,6 +7,13 @@ service cloud.firestore {
       allow read: if request.auth != null
                   && request.auth.uid in resource.data.ownerIds;
       allow write: if false;
+
+      // History: readable by the owners of the parent vehicle.
+      match /positions/{positionId} {
+        allow read: if request.auth != null
+                    && request.auth.uid in get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.ownerIds;
+        allow write: if false;
+      }
     }
 
     match /{document=**} {

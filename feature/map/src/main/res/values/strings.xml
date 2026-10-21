@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_map_title">Map</string>
+    <string name="feature_map_search_hint">Where is my vehicle?</string>
+    <string name="feature_map_clear">Clear</string>
     <string name="feature_map_connecting">Connecting…</string>
-    <string name="feature_map_offline">Offline · showing cached positions</string>
-    <string name="feature_map_speed_and_update">%1$s · %2$s</string>
+    <string name="feature_map_offline">Offline · showing last positions</string>
+    <string name="feature_map_follow">Follow vehicle</string>
+    <string name="feature_map_show_all">Show all vehicles</string>
+    <string name="feature_map_close">Close</string>
+    <string name="feature_map_heading">Heading %1$s · %2$s</string>
+    <string name="feature_map_ignition_on">Ignition on</string>
+    <string name="feature_map_ignition_off">Ignition off</string>
+    <string name="feature_map_volts">%1$.1f V</string>
+    <string name="feature_map_history">History</string>
     <string name="feature_map_details">Details</string>
+    <string name="feature_map_no_vehicles">No vehicles yet</string>
+    <string name="feature_map_fleet_summary">%1$d vehicles · %2$d online</string>
 </resources>

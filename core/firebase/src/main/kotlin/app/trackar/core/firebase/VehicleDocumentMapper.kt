@@ -21,6 +21,9 @@ internal object VehicleFields {
     const val LAST_UPDATE = "lastUpdate"
     const val CATEGORY = "category"
     const val POSITION = "position"
+
+    /** Subcollection `vehicles/{id}/positions/{autoId}`: one document per fix (same fields as [POSITION]). */
+    const val HISTORY = "positions"
     const val LOCATION = "location"
     const val FIX_TIME = "fixTime"
     const val SPEED_KMH = "speedKmh"
@@ -45,7 +48,7 @@ internal fun vehicleFromDocument(id: String, data: Map<String, Any?>): Vehicle? 
     )
 }
 
-private fun Map<*, *>.toPosition(vehicleId: String): VehiclePosition? {
+internal fun Map<*, *>.toPosition(vehicleId: String): VehiclePosition? {
     val location = this[VehicleFields.LOCATION] as? GeoPoint ?: return null
     val fixTime = (this[VehicleFields.FIX_TIME] as? Timestamp)?.toInstant() ?: return null
     return VehiclePosition(

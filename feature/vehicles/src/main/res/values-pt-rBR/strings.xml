@@ -19,4 +19,5 @@
     <string name="feature_vehicles_on">Ligada</string>
     <string name="feature_vehicles_off">Desligada</string>
     <string name="feature_vehicles_volts">%1$.1f V</string>
+    <string name="feature_vehicles_history">Ver histórico de trajetos</string>
 </resources>

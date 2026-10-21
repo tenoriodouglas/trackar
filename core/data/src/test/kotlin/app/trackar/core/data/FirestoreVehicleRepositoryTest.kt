@@ -9,6 +9,8 @@ import app.trackar.core.model.ConnectionState
 import app.trackar.core.model.DeviceStatus
 import app.trackar.core.model.Session
 import app.trackar.core.model.Vehicle
+import app.trackar.core.model.VehiclePosition
+import java.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,5 +80,8 @@ class FirestoreVehicleRepositoryTest {
         }
 
         override suspend fun fetchVehicles(userId: String): List<Vehicle> = emptyList()
+
+        override suspend fun fetchHistory(vehicleId: String, from: Instant, to: Instant): List<VehiclePosition> =
+            emptyList()
     }
 }

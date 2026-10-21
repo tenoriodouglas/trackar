@@ -64,6 +64,7 @@ dependencies {
     implementation(projects.core.model)
     implementation(projects.core.designsystem)
     implementation(projects.feature.auth)
+    implementation(projects.feature.history)
     implementation(projects.feature.map)
     implementation(projects.feature.vehicles)
 

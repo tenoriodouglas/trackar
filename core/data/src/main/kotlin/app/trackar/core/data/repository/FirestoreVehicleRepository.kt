@@ -6,6 +6,8 @@ import app.trackar.core.firebase.AuthDataSource
 import app.trackar.core.firebase.VehicleDataSource
 import app.trackar.core.model.ConnectionState
 import app.trackar.core.model.Vehicle
+import app.trackar.core.model.VehiclePosition
+import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
@@ -69,6 +71,9 @@ internal class FirestoreVehicleRepository @Inject constructor(
         val userId = checkNotNull(authDataSource.session.first()?.userId) { "Not signed in" }
         vehicleDataSource.fetchVehicles(userId)
     }
+
+    override suspend fun getHistory(vehicleId: String, from: Instant, to: Instant): Result<List<VehiclePosition>> =
+        suspendRunCatching { vehicleDataSource.fetchHistory(vehicleId, from, to) }
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L

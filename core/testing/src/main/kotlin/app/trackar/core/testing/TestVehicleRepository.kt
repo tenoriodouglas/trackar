@@ -3,6 +3,8 @@ package app.trackar.core.testing
 import app.trackar.core.data.repository.VehicleRepository
 import app.trackar.core.model.ConnectionState
 import app.trackar.core.model.Vehicle
+import app.trackar.core.model.VehiclePosition
+import java.time.Instant
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -24,6 +26,16 @@ class TestVehicleRepository : VehicleRepository {
     override fun observeVehicles(): Flow<List<Vehicle>> = vehicles
 
     override fun observeVehicle(id: String): Flow<Vehicle?> = vehicles.map { list -> list.firstOrNull { it.id == id } }
+
+    /** Result returned by [getHistory]; the last requested range is recorded. */
+    var historyResult: Result<List<VehiclePosition>> = Result.success(emptyList())
+    var lastHistoryRange: Pair<Instant, Instant>? = null
+        private set
+
+    override suspend fun getHistory(vehicleId: String, from: Instant, to: Instant): Result<List<VehiclePosition>> {
+        lastHistoryRange = from to to
+        return historyResult
+    }
 
     override suspend fun refresh(): Result<Unit> {
         refreshCount++

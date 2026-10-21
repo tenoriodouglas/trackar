@@ -5,4 +5,18 @@
     <string name="core_designsystem_status_unknown">Unknown</string>
     <string name="core_designsystem_never">Never</string>
     <string name="core_designsystem_speed_kmh">%1$d km/h</string>
+    <string name="core_designsystem_distance_m">%1$d m</string>
+    <string name="core_designsystem_distance_km">%1$.1f km</string>
+    <string name="core_designsystem_duration_hm">%1$dh %2$02dmin</string>
+    <string name="core_designsystem_duration_m">%1$d min</string>
+    <string-array name="core_designsystem_compass_points">
+        <item>North</item>
+        <item>Northeast</item>
+        <item>East</item>
+        <item>Southeast</item>
+        <item>South</item>
+        <item>Southwest</item>
+        <item>West</item>
+        <item>Northwest</item>
+    </string-array>
 </resources>

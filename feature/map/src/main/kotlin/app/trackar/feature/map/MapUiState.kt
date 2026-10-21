@@ -1,6 +1,7 @@
 package app.trackar.feature.map
 
 import app.trackar.core.model.ConnectionState
+import app.trackar.core.model.DeviceStatus
 import app.trackar.core.model.Vehicle
 
 sealed interface MapUiState {
@@ -11,5 +12,7 @@ sealed interface MapUiState {
         val vehicles: List<Vehicle>,
         val selected: Vehicle?,
         val connection: ConnectionState
-    ) : MapUiState
+    ) : MapUiState {
+        val onlineCount: Int get() = vehicles.count { it.status == DeviceStatus.ONLINE }
+    }
 }

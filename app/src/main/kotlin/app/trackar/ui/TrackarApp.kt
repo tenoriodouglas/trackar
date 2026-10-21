@@ -14,6 +14,8 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import app.trackar.core.model.SessionState
 import app.trackar.feature.auth.LoginRoute
+import app.trackar.feature.history.navigation.HistoryNavKey
+import app.trackar.feature.history.navigation.historyEntry
 import app.trackar.feature.map.navigation.MapNavKey
 import app.trackar.feature.map.navigation.mapEntry
 import app.trackar.feature.vehicles.navigation.VehicleDetailNavKey
@@ -63,8 +65,11 @@ private fun AuthenticatedApp() {
             ),
             entryProvider = entryProvider {
                 val openDetails: (String) -> Unit = { id -> backStack.add(VehicleDetailNavKey(id)) }
-                mapEntry(onOpenDetails = openDetails)
-                vehiclesEntries(onVehicleClick = openDetails, onBack = { backStack.removeLastOrNull() })
+                val openHistory: (String) -> Unit = { id -> backStack.add(HistoryNavKey(id)) }
+                val back: () -> Unit = { backStack.removeLastOrNull() }
+                mapEntry(onOpenDetails = openDetails, onOpenHistory = openHistory)
+                vehiclesEntries(onVehicleClick = openDetails, onOpenHistory = openHistory, onBack = back)
+                historyEntry(onBack = back)
             }
         )
     }

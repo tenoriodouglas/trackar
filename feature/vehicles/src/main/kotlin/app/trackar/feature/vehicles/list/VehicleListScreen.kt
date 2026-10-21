@@ -1,23 +1,29 @@
 package app.trackar.feature.vehicles.list
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -34,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.trackar.core.designsystem.component.StatusIndicator
+import app.trackar.core.designsystem.component.VehicleMarkerIcon
 import app.trackar.core.designsystem.component.color
 import app.trackar.core.designsystem.component.relativeLabel
 import app.trackar.core.designsystem.component.speedLabel
@@ -110,10 +117,9 @@ internal fun VehicleListScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        LazyColumn(Modifier.fillMaxSize()) {
+                        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)) {
                             items(uiState.vehicles, key = Vehicle::id) { vehicle ->
                                 VehicleRow(vehicle, onClick = { onVehicleClick(vehicle.id) })
-                                HorizontalDivider()
                             }
                         }
                     }
@@ -126,18 +132,42 @@ internal fun VehicleListScreen(
 @Composable
 private fun VehicleRow(vehicle: Vehicle, onClick: () -> Unit) {
     val position = vehicle.position
-    ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        leadingContent = { Icon(Icons.Filled.DirectionsCar, contentDescription = null, tint = vehicle.status.color) },
-        headlineContent = { Text(vehicle.name) },
-        supportingContent = {
-            Text(
-                position?.let { "${speedLabel(it.speedKmh)} · ${it.fixTime.relativeLabel()}" }
-                    ?: stringResource(R.string.feature_vehicles_no_position)
-            )
-        },
-        trailingContent = { StatusIndicator(vehicle.status) }
-    )
+    Card(
+        onClick = onClick,
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)
+    ) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            VehicleMarkerIcon(color = vehicle.status.color, course = position?.course?.toFloat(), size = 48.dp)
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(vehicle.name, style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                Text(
+                    position?.address ?: stringResource(R.string.feature_vehicles_no_position),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+                Spacer(Modifier.height(4.dp))
+                StatusIndicator(vehicle.status)
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                position?.let {
+                    Text(
+                        speedLabel(it.speedKmh),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Text(
+                    (position?.fixTime ?: vehicle.lastUpdate).relativeLabel(),
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+        }
+    }
 }
 
 @Preview

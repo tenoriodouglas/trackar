@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_history_back">Voltar</string>
+    <string name="feature_history_previous_day">Dia anterior</string>
+    <string name="feature_history_next_day">Próximo dia</string>
+    <string name="feature_history_pick_date">Escolher data</string>
+    <string name="feature_history_today">Hoje</string>
+    <string name="feature_history_yesterday">Ontem</string>
+    <string name="feature_history_loading">Carregando trajeto…</string>
+    <string name="feature_history_error">Não foi possível carregar o histórico.</string>
+    <string name="feature_history_retry">Tentar de novo</string>
+    <string name="feature_history_empty_title">Nenhum trajeto neste dia</string>
+    <string name="feature_history_empty_body">O veículo não enviou posições. Tente outra data.</string>
+    <string name="feature_history_distance">Distância</string>
+    <string name="feature_history_max_speed">Vel. máx.</string>
+    <string name="feature_history_moving">Rodando</string>
+    <string name="feature_history_stops">Paradas</string>
+    <string name="feature_history_stop_title">Parado por %1$s</string>
+    <string name="feature_history_play">Reproduzir trajeto</string>
+    <string name="feature_history_pause">Pausar</string>
+    <string name="feature_history_ok">OK</string>
+    <string name="feature_history_cancel">Cancelar</string>
+</resources>

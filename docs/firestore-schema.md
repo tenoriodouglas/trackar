@@ -33,5 +33,12 @@ Tracker ──TCP/UDP──▶ Gateway (e.g. Traccar + position forwarding → C
 | `powerVolts` | number    | Vehicle battery, optional.    |
 | `valid`      | boolean   | GPS fix validity.             |
 
+## `vehicles/{vehicleId}/positions/{autoId}` (history)
+
+One document per GPS fix, with the same fields as `position` above (`location` and `fixTime` required).
+The gateway appends here on every fix and also overwrites `vehicles/{id}.position` with the latest one.
+The app queries one day at a time (`fixTime` range, ascending, max 5,000 points); the automatic
+single-field index on `fixTime` is enough. Consider a TTL policy on `fixTime` to cap storage (e.g. 90 days).
+
 Security rules: [`firebase/firestore.rules`](../firebase/firestore.rules) — clients are read-only and
 only see documents whose `ownerIds` contains their UID.

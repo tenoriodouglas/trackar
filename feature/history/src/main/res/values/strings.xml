@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_history_back">Back</string>
+    <string name="feature_history_previous_day">Previous day</string>
+    <string name="feature_history_next_day">Next day</string>
+    <string name="feature_history_pick_date">Pick a date</string>
+    <string name="feature_history_today">Today</string>
+    <string name="feature_history_yesterday">Yesterday</string>
+    <string name="feature_history_loading">Loading route…</string>
+    <string name="feature_history_error">Couldn\'t load the history.</string>
+    <string name="feature_history_retry">Try again</string>
+    <string name="feature_history_empty_title">No trips on this day</string>
+    <string name="feature_history_empty_body">The vehicle didn\'t send any position. Try another date.</string>
+    <string name="feature_history_distance">Distance</string>
+    <string name="feature_history_max_speed">Top speed</string>
+    <string name="feature_history_moving">Moving</string>
+    <string name="feature_history_stops">Stops</string>
+    <string name="feature_history_stop_title">Stopped for %1$s</string>
+    <string name="feature_history_play">Play route</string>
+    <string name="feature_history_pause">Pause</string>
+    <string name="feature_history_ok">OK</string>
+    <string name="feature_history_cancel">Cancel</string>
+</resources>

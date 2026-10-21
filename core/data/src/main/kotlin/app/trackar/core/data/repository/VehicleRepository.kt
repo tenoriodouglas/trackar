@@ -2,6 +2,8 @@ package app.trackar.core.data.repository
 
 import app.trackar.core.model.ConnectionState
 import app.trackar.core.model.Vehicle
+import app.trackar.core.model.VehiclePosition
+import java.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -16,4 +18,7 @@ interface VehicleRepository {
 
     /** Forces a server round-trip; live updates arrive through [observeVehicles]. */
     suspend fun refresh(): Result<Unit>
+
+    /** Position history of one vehicle in [from, to), oldest first. */
+    suspend fun getHistory(vehicleId: String, from: Instant, to: Instant): Result<List<VehiclePosition>>
 }

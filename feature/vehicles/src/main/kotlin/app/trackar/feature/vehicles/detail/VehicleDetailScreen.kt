@@ -7,18 +7,21 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Directions
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -44,18 +47,24 @@ import java.util.Locale
 fun VehicleDetailRoute(
     vehicleId: String,
     onBack: () -> Unit,
+    onOpenHistory: () -> Unit,
     viewModel: VehicleDetailViewModel = hiltViewModel<VehicleDetailViewModel, VehicleDetailViewModel.Factory>(
         key = vehicleId,
         creationCallback = { it.create(vehicleId) }
     )
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    VehicleDetailScreen(uiState = uiState, onBack = onBack)
+    VehicleDetailScreen(uiState = uiState, onBack = onBack, onOpenHistory = onOpenHistory)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun VehicleDetailScreen(uiState: VehicleDetailUiState, onBack: () -> Unit, modifier: Modifier = Modifier) {
+internal fun VehicleDetailScreen(
+    uiState: VehicleDetailUiState,
+    onBack: () -> Unit,
+    onOpenHistory: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -81,14 +90,14 @@ internal fun VehicleDetailScreen(uiState: VehicleDetailUiState, onBack: () -> Un
                     modifier = Modifier.align(Alignment.Center)
                 )
 
-                is VehicleDetailUiState.Ready -> VehicleDetails(uiState.vehicle)
+                is VehicleDetailUiState.Ready -> VehicleDetails(uiState.vehicle, onOpenHistory)
             }
         }
     }
 }
 
 @Composable
-private fun VehicleDetails(vehicle: Vehicle) {
+private fun VehicleDetails(vehicle: Vehicle, onOpenHistory: () -> Unit) {
     val position = vehicle.position
     Column(Modifier.verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
         DetailRow(R.string.feature_vehicles_status) { StatusIndicator(vehicle.status) }
@@ -102,7 +111,7 @@ private fun VehicleDetails(vehicle: Vehicle) {
             }
             DetailRow(R.string.feature_vehicles_address, position.address ?: position.coordinates.format())
             DetailRow(R.string.feature_vehicles_fix_time, position.fixTime.relativeLabel())
-            NavigateButton(position.coordinates)
+            ActionButtons(position.coordinates, onOpenHistory)
         } else {
             DetailRow(R.string.feature_vehicles_address, stringResource(R.string.feature_vehicles_no_position))
         }
@@ -117,12 +126,16 @@ private fun DetailRow(label: Int, value: @Composable () -> Unit) {
     ListItem(overlineContent = { Text(stringResource(label)) }, headlineContent = value)
 }
 
-/** Hands navigation off to any installed maps app via a standard geo intent. */
+/** History plus hand-off to any installed maps app via a standard geo intent. */
 @Composable
-private fun NavigateButton(coordinates: Coordinates) {
+private fun ActionButtons(coordinates: Coordinates, onOpenHistory: () -> Unit) {
     val context = LocalContext.current
-    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.Center) {
-        Button(
+    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Button(onClick = onOpenHistory, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+            Icon(Icons.Filled.History, contentDescription = null)
+            Text(stringResource(R.string.feature_vehicles_history), modifier = Modifier.padding(start = 8.dp))
+        }
+        OutlinedButton(
             onClick = {
                 val uri = "geo:0,0?q=${coordinates.latitude},${coordinates.longitude}".toUri()
                 try {
@@ -131,7 +144,7 @@ private fun NavigateButton(coordinates: Coordinates) {
                     // No maps app installed; nothing sensible to fall back to.
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().height(52.dp)
         ) {
             Icon(Icons.Filled.Directions, contentDescription = null)
             Text(stringResource(R.string.feature_vehicles_navigate), modifier = Modifier.padding(start = 8.dp))

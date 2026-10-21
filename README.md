@@ -2,6 +2,15 @@
 
 Rastreamento veicular em tempo real para dispositivos M2M/GPS. Android nativo.
 
+## Funcionalidades
+
+- **Mapa ao vivo estilo navegação:** carros como setas que giram conforme o rumo e deslizam entre as
+  posições, modo "seguir veículo", bolha de velocidade, busca rápida e direção por extenso ("Indo para Nordeste").
+- **Histórico de trajetos:** escolha o dia, veja a rota no mapa, reproduza o percurso e confira
+  distância, velocidade máxima, tempo rodando e paradas.
+- **Frota:** lista com busca, status online/offline, ignição, bateria e endereço.
+- **Offline:** últimas posições ficam em cache.
+
 ## Stack
 
 | Camada        | Tecnologia                                                        |
@@ -25,6 +34,7 @@ app                 -> Activity, tema/splash, navegação raiz
 feature/auth        -> login (e-mail/senha)
 feature/map         -> mapa com a frota em tempo real
 feature/vehicles    -> lista com busca + detalhe do veículo
+feature/history     -> histórico do dia: rota, reprodução e resumo
 core/data           -> repositórios (fonte única da verdade)
 core/firebase       -> Auth e Firestore (data sources + mapeamento)
 core/model          -> modelos de domínio (Kotlin puro)

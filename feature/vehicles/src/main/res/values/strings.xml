@@ -19,4 +19,5 @@
     <string name="feature_vehicles_on">On</string>
     <string name="feature_vehicles_off">Off</string>
     <string name="feature_vehicles_volts">%1$.1f V</string>
+    <string name="feature_vehicles_history">View trip history</string>
 </resources>
