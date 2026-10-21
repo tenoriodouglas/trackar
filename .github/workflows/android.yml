@@ -81,7 +81,7 @@ jobs:
 
       - name: Upload reports
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reports
           path: "**/build/reports"
@@ -174,7 +174,7 @@ jobs:
 
       # Always available for manual download, even if the Play upload below can't run yet.
       - name: Upload signed AAB
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: trackar-release-aab
           path: |
