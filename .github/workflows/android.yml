@@ -58,7 +58,7 @@ jobs:
       - name: Android SDK packages
         run: .github/scripts/setup-android-sdk.sh
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Firebase config
         env:
@@ -135,7 +135,7 @@ jobs:
       - name: Android SDK packages
         run: .github/scripts/setup-android-sdk.sh
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Verify release secrets
         env:
