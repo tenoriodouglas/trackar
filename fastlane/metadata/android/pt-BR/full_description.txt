@@ -1,0 +1,10 @@
+Trackar mostra em tempo real onde estão seus veículos equipados com rastreadores GPS/M2M.
+
+• Mapa ao vivo com todos os veículos e status (online, offline)
+• Velocidade, ignição, tensão da bateria e endereço da última posição
+• Lista com busca por nome ou IMEI
+• Navegação até o veículo com um toque
+• Funciona offline com as últimas posições conhecidas
+• Login seguro; cada usuário vê apenas os próprios veículos
+
+Ideal para frotas, locadoras, empresas de logística e proprietários que querem acompanhar seus veículos de qualquer lugar.

@@ -12,17 +12,32 @@ plugins {
 val localProperties = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use(::load)
 }
-fun secret(name: String): String = localProperties.getProperty(name) ?: System.getenv(name) ?: ""
+fun secret(name: String): String? = localProperties.getProperty(name) ?: providers.environmentVariable(name).orNull
+
+// Release signing is enabled only when a keystore is provided (CI deploy job or local.properties).
+val releaseKeystore = secret("KEYSTORE_FILE")?.let(::file)?.takeIf { it.exists() }
 
 android {
     namespace = "app.trackar"
 
     defaultConfig {
         applicationId = "app.trackar"
-        versionCode = 1
+        // CI sets VERSION_CODE = run number, so every build is unique and increasing.
+        versionCode = secret("VERSION_CODE")?.toIntOrNull() ?: 1
         versionName = "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        manifestPlaceholders["mapsApiKey"] = secret("MAPS_API_KEY")
+        manifestPlaceholders["mapsApiKey"] = secret("MAPS_API_KEY").orEmpty()
+    }
+
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = releaseKeystore
+                storePassword = secret("KEYSTORE_PASSWORD")
+                keyAlias = secret("KEY_ALIAS")
+                keyPassword = secret("KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -34,6 +49,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 

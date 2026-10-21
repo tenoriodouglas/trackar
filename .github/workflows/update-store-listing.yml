@@ -1,0 +1,49 @@
+name: Update Play Store listing
+
+# Manual: uploads title, descriptions and images from fastlane/metadata (no APK/AAB).
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: play-store-listing
+  cancel-in-progress: false
+
+jobs:
+  update-listing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Install fastlane
+        run: gem install fastlane -N
+
+      - name: Write service account
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "::error::Secret PLAY_SERVICE_ACCOUNT_JSON is not set."
+            exit 1
+          fi
+          printf '%s' "$PLAY_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/play-sa.json"
+
+      # changes_not_sent_for_review: changes wait for review in Play Console.
+      - name: Upload listing
+        run: |
+          fastlane supply \
+            --package_name app.trackar \
+            --json_key "$RUNNER_TEMP/play-sa.json" \
+            --metadata_path fastlane/metadata/android \
+            --skip_upload_apk true \
+            --skip_upload_aab true \
+            --skip_upload_changelogs true \
+            --changes_not_sent_for_review true
+
+      - name: Remove credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/play-sa.json"

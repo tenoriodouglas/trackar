@@ -1,0 +1,61 @@
+name: Deploy Firestore rules
+
+# Publishes firebase/firestore.rules and indexes on change in main (or manually).
+# Secrets: FIREBASE_SERVICE_ACCOUNT (service account JSON) and GOOGLE_SERVICES_JSON_BASE64 (project id source).
+on:
+  push:
+    branches: [main]
+    paths:
+      - "firebase/**"
+      - "firebase.json"
+      - ".github/workflows/firestore-rules.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: firestore-rules
+  cancel-in-progress: false
+
+jobs:
+  deploy-rules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Resolve project id
+        env:
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON_BASE64" ]; then
+            echo "::error::Secret GOOGLE_SERVICES_JSON_BASE64 is not set."
+            exit 1
+          fi
+          echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > "$RUNNER_TEMP/google-services.json"
+          project_id=$(jq -r '.project_info.project_id' "$RUNNER_TEMP/google-services.json")
+          echo "FIREBASE_PROJECT_ID=$project_id" >> "$GITHUB_ENV"
+
+      # Service-account auth: `firebase login:ci` tokens are deprecated.
+      - name: Write service account key
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "::error::Secret FIREBASE_SERVICE_ACCOUNT is not set (Firebase Console > Project settings > Service accounts > Generate new private key)."
+            exit 1
+          fi
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa.json" >> "$GITHUB_ENV"
+
+      - name: Deploy rules and indexes
+        run: firebase deploy --only firestore --project "$FIREBASE_PROJECT_ID" --non-interactive
+
+      - name: Remove credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sa.json"

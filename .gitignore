@@ -11,3 +11,5 @@ build/
 .cxx
 *.jks
 *.keystore
+# Firebase config: real file is provided locally or by CI (GOOGLE_SERVICES_JSON_BASE64)
+/app/google-services.json

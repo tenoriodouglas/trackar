@@ -1,0 +1,44 @@
+name: Cleanup storage
+
+# Deletes old workflow artifacts to free Actions storage. Release assets are untouched.
+on:
+  schedule:
+    - cron: "0 3 * * 0" # Sundays 03:00 UTC
+  workflow_dispatch:
+    inputs:
+      keep_days:
+        description: "Keep artifacts newer than N days (0 = delete all)"
+        required: true
+        default: "7"
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: cleanup-storage
+  cancel-in-progress: false
+
+jobs:
+  purge-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        env:
+          KEEP_DAYS: ${{ inputs.keep_days || '7' }}
+        with:
+          script: |
+            const keepDays = parseInt(process.env.KEEP_DAYS, 10) || 0;
+            const cutoff = Date.now() - keepDays * 86_400_000;
+            const artifacts = await github.paginate(github.rest.actions.listArtifactsForRepo, {
+              owner: context.repo.owner, repo: context.repo.repo, per_page: 100,
+            });
+            let deleted = 0;
+            for (const a of artifacts) {
+              if (a.expired || (keepDays > 0 && new Date(a.created_at).getTime() >= cutoff)) continue;
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner, repo: context.repo.repo, artifact_id: a.id,
+              });
+              deleted++;
+            }
+            core.notice(`Deleted ${deleted} of ${artifacts.length} artifacts (keepDays=${keepDays}).`);
