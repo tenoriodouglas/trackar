@@ -19,17 +19,28 @@ jobs:
   deploy-rules:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      # Graceful degradation: without secrets the job is skipped with a warning instead of failing.
+      HAS_SECRETS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' && secrets.GOOGLE_SERVICES_JSON_BASE64 != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Skip notice
+        if: env.HAS_SECRETS != 'true'
+        run: echo "::warning::Deploy skipped. Set secrets FIREBASE_SERVICE_ACCOUNT and GOOGLE_SERVICES_JSON_BASE64."
+
+      - uses: actions/checkout@v7
+        if: env.HAS_SECRETS == 'true'
 
       - uses: actions/setup-node@v4
+        if: env.HAS_SECRETS == 'true'
         with:
           node-version: "22"
 
       - name: Install Firebase CLI
+        if: env.HAS_SECRETS == 'true'
         run: npm install -g firebase-tools
 
       - name: Resolve project id
+        if: env.HAS_SECRETS == 'true'
         env:
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
         run: |
@@ -43,6 +54,7 @@ jobs:
 
       # Service-account auth: `firebase login:ci` tokens are deprecated.
       - name: Write service account key
+        if: env.HAS_SECRETS == 'true'
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
@@ -54,6 +66,7 @@ jobs:
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa.json" >> "$GITHUB_ENV"
 
       - name: Deploy rules and indexes
+        if: env.HAS_SECRETS == 'true'
         run: firebase deploy --only firestore --project "$FIREBASE_PROJECT_ID" --non-interactive
 
       - name: Remove credentials

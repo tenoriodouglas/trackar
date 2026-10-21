@@ -48,9 +48,9 @@ jobs:
     permissions:
       contents: write # rolling release on main
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "21"
@@ -58,7 +58,7 @@ jobs:
       - name: Android SDK packages
         run: .github/scripts/setup-android-sdk.sh
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Firebase config
         env:
@@ -81,7 +81,7 @@ jobs:
 
       - name: Upload reports
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reports
           path: "**/build/reports"
@@ -125,9 +125,9 @@ jobs:
       group: play-store-deploy
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "21"
@@ -135,7 +135,7 @@ jobs:
       - name: Android SDK packages
         run: .github/scripts/setup-android-sdk.sh
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Verify release secrets
         env:
@@ -174,7 +174,7 @@ jobs:
 
       # Always available for manual download, even if the Play upload below can't run yet.
       - name: Upload signed AAB
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: trackar-release-aab
           path: |
