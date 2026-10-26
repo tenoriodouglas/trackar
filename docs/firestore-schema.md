@@ -12,7 +12,6 @@ Tracker ──TCP/UDP──▶ Traccar (GCE VM) ──HTTPS──▶ Cloud Funct
 Document id = tracker unique id (IMEI). Created automatically on first fix with empty `ownerIds`;
 linked to users by the **Register vehicle** workflow.
 
-<!-- fields -->
 
 | Field        | Type          | Notes                                     |
 |--------------|---------------|-------------------------------------------|
