@@ -42,6 +42,8 @@ core/designsystem   -> tema e componentes Compose
 core/common         -> dispatchers, escopos, utilitários
 core/testing        -> fakes e regras de teste
 build-logic         -> convention plugins do Gradle
+backend/functions   -> Cloud Functions (TypeScript): ingestão de posições, status offline, cadastro de veículo
+backend/infra       -> Terraform: VM do Traccar, IP fixo, firewall, secret
 ```
 
 Dependências apontam sempre para dentro: `feature -> data -> firebase -> model`.
@@ -49,11 +51,12 @@ Dependências apontam sempre para dentro: `feature -> data -> firebase -> model`
 ## Fluxo dos dados
 
 ```
-Rastreador ─TCP/UDP─▶ Gateway (ex.: Traccar → Cloud Function) ─▶ Firestore ─tempo real─▶ App
+Rastreador ─TCP/UDP─▶ Traccar (VM GCP) ─▶ Cloud Function ─▶ Firestore ─tempo real─▶ App
 ```
 
-O rastreador não fala com o Firebase diretamente; um gateway decodifica o protocolo e grava no
-Firestore. Schema e regras: [docs/firestore-schema.md](docs/firestore-schema.md).
+O rastreador não fala com o Firebase diretamente: um **Traccar** numa VM do Google Cloud decodifica o protocolo
+e envia cada posição a uma **Cloud Function**, que grava no Firestore. Tudo no Google Cloud, provisionado por
+Terraform. Detalhes: [docs/gateway.md](docs/gateway.md) · schema: [docs/firestore-schema.md](docs/firestore-schema.md).
 
 ## Configuração
 
@@ -77,6 +80,8 @@ Firestore. Schema e regras: [docs/firestore-schema.md](docs/firestore-schema.md)
 | `firestore-rules.yml` | mudança em `firebase/**` na `main` ou manual | deploy de regras e índices |
 | `update-store-listing.yml` | manual | ficha da loja via fastlane (`fastlane/metadata`) |
 | `cleanup-storage.yml` | semanal ou manual | apaga artifacts antigos |
+| `backend.yml` | mudança em `backend/**` | testes (emulador) + `terraform apply` + deploy das functions |
+| `register-vehicle.yml` | manual | vincula IMEI do rastreador a um usuário |
 
 `versionCode` = número da execução (`VERSION_CODE`), sempre crescente.
 

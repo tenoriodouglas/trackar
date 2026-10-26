@@ -1,0 +1,60 @@
+name: Register vehicle
+
+# Manual: links a tracker (IMEI) to a user account so it shows up in the app.
+on:
+  workflow_dispatch:
+    inputs:
+      imei:
+        description: "Tracker IMEI / unique id"
+        required: true
+      owner_email:
+        description: "E-mail of the app user (must exist in Firebase Authentication)"
+        required: true
+      name:
+        description: "Display name (e.g. plate or model). Leave empty to keep the current one."
+        required: false
+      category:
+        description: "Category"
+        required: false
+        type: choice
+        default: car
+        options: [car, truck, motorcycle, van, bus, other]
+
+jobs:
+  register:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/functions/package-lock.json
+
+      - name: Resolve project id
+        env:
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON_BASE64" ]; then echo "::error::Secret GOOGLE_SERVICES_JSON_BASE64 is not set."; exit 1; fi
+          echo "GOOGLE_CLOUD_PROJECT=$(echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode | jq -r '.project_info.project_id')" >> "$GITHUB_ENV"
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      # Inputs go through env vars, never interpolated into the script.
+      - name: Register
+        working-directory: backend/functions
+        env:
+          IMEI: ${{ inputs.imei }}
+          OWNER: ${{ inputs.owner_email }}
+          NAME: ${{ inputs.name }}
+          CATEGORY: ${{ inputs.category }}
+        run: |
+          npm ci
+          npm run build
+          args=(--imei "$IMEI" --owner "$OWNER" --category "$CATEGORY")
+          if [ -n "$NAME" ]; then args+=(--name "$NAME"); fi
+          npm run register-vehicle -- "${args[@]}"

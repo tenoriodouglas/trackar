@@ -1,0 +1,44 @@
+#!/bin/bash
+# Runs on every boot: installs Docker once, renders Traccar config with the secret, (re)starts the container.
+set -euo pipefail
+
+if ! command -v docker >/dev/null; then
+  apt-get update
+  apt-get install -y docker.io
+  systemctl enable --now docker
+fi
+
+TOKEN=$(gcloud secrets versions access latest --secret="${secret_name}")
+mkdir -p /opt/traccar/data /opt/traccar/logs
+umask 077
+cat > /opt/traccar/traccar.xml <<XML
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE properties SYSTEM 'http://java.sun.com/dtd/properties.dtd'>
+<properties>
+    <entry key='database.driver'>org.h2.Driver</entry>
+    <entry key='database.url'>jdbc:h2:./data/database</entry>
+    <entry key='database.user'>sa</entry>
+    <entry key='database.password'></entry>
+    <!-- Devices are created on first contact; ownership is managed in Firestore. -->
+    <entry key='database.registerUnknown'>true</entry>
+    <!-- Admin UI bound to localhost: use the IAP tunnel (terraform output traccar_ui_tunnel). -->
+    <entry key='web.address'>127.0.0.1</entry>
+    <entry key='web.port'>8082</entry>
+    <entry key='forward.enable'>true</entry>
+    <entry key='forward.type'>json</entry>
+    <entry key='forward.json'>true</entry>
+    <entry key='forward.url'>${ingest_url}</entry>
+    <entry key='forward.header'>Authorization: Bearer $TOKEN</entry>
+    <entry key='forward.retry.enable'>true</entry>
+    <entry key='forward.retry.limit'>1000</entry>
+    <entry key='logger.file'>./logs/tracker-server.log</entry>
+</properties>
+XML
+
+docker pull "${traccar_image}"
+docker rm -f traccar >/dev/null 2>&1 || true
+docker run -d --name traccar --restart unless-stopped --network host \
+  -v /opt/traccar/data:/opt/traccar/data \
+  -v /opt/traccar/logs:/opt/traccar/logs \
+  -v /opt/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro \
+  "${traccar_image}"

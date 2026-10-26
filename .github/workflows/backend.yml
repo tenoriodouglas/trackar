@@ -1,0 +1,148 @@
+name: Backend CI/CD
+
+# Gateway backend: Traccar VM (Terraform) + Cloud Functions that write positions to Firestore.
+# - PR / push: typecheck, unit + emulator tests, terraform fmt/validate.
+# - Push to main / manual: terraform apply, then deploy functions.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "firebase.json"
+      - ".github/workflows/backend.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - "firebase.json"
+      - ".github/workflows/backend.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  TERRAFORM_VERSION: "1.17.0"
+  REGION: southamerica-east1
+
+jobs:
+  functions:
+    name: Functions tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend/functions
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/functions/package-lock.json
+
+      # Firestore emulator runs on the JVM.
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test:emulator
+
+  terraform:
+    name: Terraform validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend/infra
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - run: terraform fmt -check -recursive
+      - run: terraform init -backend=false -input=false
+      - run: terraform validate
+
+  deploy:
+    name: Deploy backend
+    needs: [functions, terraform]
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: backend-deploy
+      cancel-in-progress: false
+    env:
+      HAS_SECRETS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' && secrets.GOOGLE_SERVICES_JSON_BASE64 != '' }}
+    steps:
+      - name: Skip notice
+        if: env.HAS_SECRETS != 'true'
+        run: echo "::warning::Deploy skipped. Set secrets FIREBASE_SERVICE_ACCOUNT and GOOGLE_SERVICES_JSON_BASE64."
+
+      - uses: actions/checkout@v7
+        if: env.HAS_SECRETS == 'true'
+
+      - name: Resolve project id
+        if: env.HAS_SECRETS == 'true'
+        env:
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          project_id=$(echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode | jq -r '.project_info.project_id')
+          echo "PROJECT_ID=$project_id" >> "$GITHUB_ENV"
+
+      - uses: google-github-actions/auth@v2
+        if: env.HAS_SECRETS == 'true'
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+        if: env.HAS_SECRETS == 'true'
+
+      # Remote state lives in a versioned bucket created on first run.
+      - name: Ensure Terraform state bucket
+        if: env.HAS_SECRETS == 'true'
+        run: |
+          bucket="gs://${PROJECT_ID}-tfstate"
+          if ! gcloud storage buckets describe "$bucket" --project "$PROJECT_ID" >/dev/null 2>&1; then
+            gcloud storage buckets create "$bucket" --project "$PROJECT_ID" --location "$REGION" --uniform-bucket-level-access
+            gcloud storage buckets update "$bucket" --versioning
+          fi
+
+      - uses: hashicorp/setup-terraform@v3
+        if: env.HAS_SECRETS == 'true'
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform apply
+        if: env.HAS_SECRETS == 'true'
+        working-directory: backend/infra
+        run: |
+          terraform init -input=false -backend-config="bucket=${PROJECT_ID}-tfstate"
+          terraform apply -input=false -auto-approve -var "project_id=${PROJECT_ID}" -var "region=${REGION}"
+          {
+            echo "### Gateway"
+            echo "- Tracker server IP: \`$(terraform output -raw tracker_server_ip)\`"
+            echo "- Ingest URL: \`$(terraform output -raw ingest_url)\`"
+            echo "- Traccar UI: \`$(terraform output -raw traccar_ui_tunnel)\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/setup-node@v4
+        if: env.HAS_SECRETS == 'true'
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/functions/package-lock.json
+
+      - name: Deploy functions
+        if: env.HAS_SECRETS == 'true'
+        run: |
+          npm ci --prefix backend/functions
+          npx --prefix backend/functions firebase deploy --only functions --project "$PROJECT_ID" --non-interactive --force

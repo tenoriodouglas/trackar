@@ -4,10 +4,15 @@ M2M/GPS trackers speak binary TCP/UDP protocols (GT06, Suntech, Teltonika…) an
 Firestore directly. A **gateway** decodes them and writes with the Admin SDK:
 
 ```
-Tracker ──TCP/UDP──▶ Gateway (e.g. Traccar + position forwarding → Cloud Function) ──Admin SDK──▶ Firestore ──realtime──▶ App
+Tracker ──TCP/UDP──▶ Traccar (GCE VM) ──HTTPS──▶ Cloud Function ingestPosition ──Admin SDK──▶ Firestore ──realtime──▶ App
 ```
 
-## `vehicles/{vehicleId}`
+## `vehicles/{imei}`
+
+Document id = tracker unique id (IMEI). Created automatically on first fix with empty `ownerIds`;
+linked to users by the **Register vehicle** workflow.
+
+<!-- fields -->
 
 | Field        | Type          | Notes                                     |
 |--------------|---------------|-------------------------------------------|

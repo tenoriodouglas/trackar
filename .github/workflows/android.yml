@@ -11,12 +11,14 @@ on:
       - "docs/**"
       - "fastlane/**"
       - "firebase/**"
+      - "backend/**"
       - "**/*.md"
   pull_request:
     paths-ignore:
       - "docs/**"
       - "fastlane/**"
       - "firebase/**"
+      - "backend/**"
       - "**/*.md"
   workflow_dispatch:
     inputs:
