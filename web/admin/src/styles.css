@@ -124,3 +124,10 @@ main { padding: 20px 24px; display: grid; gap: 16px; }
 .toolbar select { flex: 1; min-width: 200px; width: auto; }
 .toolbar input[type="date"] { flex: 0 0 200px; min-width: 0; }
 .toolbar input[type="checkbox"] { flex: none; min-width: 0; width: auto; }
+button.small { padding: 6px 12px; font-size: 13px; }
+.block-button { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.small-text { font-size: 12px; max-width: 160px; text-align: right; }
+.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 14px; }
+.log li { padding: 8px 10px; border-radius: 10px; background: var(--cloud); }
+.panel-head h2 { display: flex; align-items: center; gap: 6px; }
+.panel-head .row { flex-wrap: nowrap; }

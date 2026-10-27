@@ -26,6 +26,8 @@ export function adminApi({ functions }: Services) {
     deleteVehicle: (vehicleId: string) => call("adminDeleteVehicle", { vehicleId }),
     sendCommand: (vehicleId: string, type: CommandType) => call("sendCommand", { vehicleId, type }),
     claimVehicle: (imei: string, name: string) => call("claimVehicle", { imei, name }),
+    renameVehicle: (vehicleId: string, name: string) => call("renameVehicle", { vehicleId, name }),
+    releaseVehicle: (vehicleId: string) => call("releaseVehicle", { vehicleId }),
   };
 }
 

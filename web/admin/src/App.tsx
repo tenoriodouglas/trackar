@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ServicesContext, useServices } from "./api";
 import { initServices, Services } from "./firebase";
 import { useVehicles } from "./lib/useVehicles";
+import { Account } from "./pages/Account";
 import { History } from "./pages/History";
 import { Login } from "./pages/Login";
 import { MyVehicles } from "./pages/MyVehicles";
@@ -41,7 +42,7 @@ export function App() {
   );
 }
 
-type Tab = "mine" | "fleet" | "history" | "users" | "setup";
+type Tab = "mine" | "fleet" | "history" | "users" | "setup" | "account";
 
 /** Same site for everyone: clients see their own vehicles, admins also get fleet management. */
 function Shell({ email, admin }: { email: string; admin: boolean }) {
@@ -58,10 +59,12 @@ function Shell({ email, admin }: { email: string; admin: boolean }) {
         ["history", "Histórico"],
         ["users", "Usuários"],
         ["setup", "Configurar rastreador"],
+        ["account", "Minha conta"],
       ]
     : [
         ["mine", "Meus veículos"],
         ["history", "Histórico"],
+        ["account", "Minha conta"],
       ];
 
   const openHistory = (vehicleId: string) => {
@@ -99,6 +102,7 @@ function Shell({ email, admin }: { email: string; admin: boolean }) {
             {admin && tab === "fleet" && <Vehicles vehicles={all} onOpenHistory={openHistory} />}
             {admin && tab === "users" && <Users />}
             {admin && tab === "setup" && <Setup />}
+            {tab === "account" && <Account />}
           </>
         )}
       </main>

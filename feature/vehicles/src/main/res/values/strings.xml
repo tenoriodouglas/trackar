@@ -27,7 +27,8 @@
     <string name="feature_vehicles_unblock">Unblock vehicle</string>
     <string name="feature_vehicles_block_title">Block %1$s?</string>
     <string name="feature_vehicles_unblock_title">Unblock %1$s?</string>
-    <string name="feature_vehicles_block_warning">The tracker will cut the fuel pump or ignition. For safety, blocking is only accepted below 20 km/h. Use it only when the vehicle is in a safe place.</string>
+    <string name="feature_vehicles_block_warning">The tracker will cut the fuel pump or ignition right away. Use it only when needed.</string>
+    <string name="feature_vehicles_block_moving_warning">The vehicle is moving at %1$d km/h. The engine will shut down while moving: power steering and brake assist may be lost.</string>
     <string name="feature_vehicles_unblock_message">The vehicle can be started again once the tracker receives the command.</string>
     <string name="feature_vehicles_command_sending">Sending command…</string>
     <string name="feature_vehicles_command_sent">Command delivered to the tracker</string>
@@ -43,7 +44,6 @@
     <string name="feature_vehicles_release_message">The vehicle disappears from your account. The tracker keeps working and can be added again with its IMEI.</string>
     <string name="feature_vehicles_release_confirm">Remove</string>
     <string name="feature_vehicles_action_failed">Could not complete the action</string>
-    <string name="feature_vehicles_error_moving">The vehicle is moving. Blocking is only accepted below 20 km/h.</string>
     <string name="feature_vehicles_error_too_soon">Wait a few seconds before sending another command.</string>
     <string name="feature_vehicles_error_not_allowed">You don\'t have permission for this vehicle.</string>
     <string name="feature_vehicles_error_network">No connection. Check your internet and try again.</string>

@@ -28,15 +28,8 @@ internal class CallableVehicleActionsDataSource @Inject constructor(private val 
         mapOf("vehicleId" to vehicleId, "type" to type.wireName)
     ) { code, message ->
         when (code) {
-            Code.FAILED_PRECONDITION -> CommandRejectedException(
-                CommandRejectedException.Reason.VEHICLE_MOVING,
-                message
-            )
-
             Code.RESOURCE_EXHAUSTED -> CommandRejectedException(CommandRejectedException.Reason.TOO_SOON, message)
-
             Code.PERMISSION_DENIED -> CommandRejectedException(CommandRejectedException.Reason.NOT_ALLOWED, message)
-
             else -> null
         }
     }

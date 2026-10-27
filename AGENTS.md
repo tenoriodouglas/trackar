@@ -40,7 +40,8 @@ Visão geral e operação estão no [README](README.md).
 | `metadata_startup_script` na VM | mudança no script recria a VM e garante que ele rode; IP fixo é preservado |
 | Portal no Firebase Hosting | grátis, HTTPS, sem consumir memória da VM; mesmo site para cliente e admin |
 | Papel admin por custom claim `admin` | simples, verificado nas regras e nas functions |
-| Bloqueio ≤ 20 km/h, confirmação, cooldown 10 s, expiração 2 min | segurança e padrão de mercado |
+| Bloqueio imediato em qualquer velocidade | decisão do dono; a UI alerta quando o veículo está em movimento |
+| Confirmação, cooldown 10 s, expiração 2 min, log de comandos | evita toques acidentais, flood ao rastreador e comandos "atrasados" |
 | Documento do veículo = IMEI | casa direto com o `uniqueId` do Traccar |
 | Histórico com id = `fixTime` em ms e TTL de 90 dias | idempotente para reenvios do Traccar; armazenamento limitado |
 

@@ -40,9 +40,9 @@ class VehicleDetailViewModelTest {
     @Test
     fun `backend rejection is translated`() = runTest {
         repository.commandResult =
-            Result.failure(CommandRejectedException(CommandRejectedException.Reason.VEHICLE_MOVING))
+            Result.failure(CommandRejectedException(CommandRejectedException.Reason.TOO_SOON))
         viewModel.sendCommand(CommandType.ENGINE_STOP)
-        assertEquals(DetailError.VEHICLE_MOVING, viewModel.actionState.value.error)
+        assertEquals(DetailError.TOO_SOON, viewModel.actionState.value.error)
 
         viewModel.dismissError()
         assertNull(viewModel.actionState.value.error)

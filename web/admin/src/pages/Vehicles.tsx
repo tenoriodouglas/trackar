@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { adminApi, errorMessage, useServices } from "../api";
-import { CommandControls } from "../components/CommandControls";
+import { BlockButton, CommandControls } from "../components/CommandControls";
+import { CommandLog } from "../components/CommandLog";
 import { FleetMap } from "../components/FleetMap";
 import { relativeTime } from "../lib/format";
 import { AdminUser, VehicleDoc } from "../lib/types";
@@ -61,6 +62,7 @@ export function Vehicles({ vehicles, onOpenHistory }: { vehicles: VehicleDoc[]; 
                 <th>Status</th>
                 <th>Última comunicação</th>
                 <th>Donos</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -76,11 +78,14 @@ export function Vehicles({ vehicles, onOpenHistory }: { vehicles: VehicleDoc[]; 
                   </td>
                   <td>{relativeTime(v.lastUpdate?.toDate())}</td>
                   <td>{(v.ownerIds ?? []).map((uid) => emailOf.get(uid) ?? uid).join(", ") || <span className="badge warn">sem dono</span>}</td>
+                  <td>
+                    <BlockButton vehicle={v} />
+                  </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="muted">
+                  <td colSpan={5} className="muted">
                     Nenhum veículo. Configure um rastreador na aba "Configurar rastreador".
                   </td>
                 </tr>
@@ -169,6 +174,8 @@ function VehiclePanel({
       <button className="ghost" onClick={onOpenHistory}>
         Ver histórico
       </button>
+      <h3>Últimos comandos</h3>
+      <CommandLog vehicleId={vehicle.id} />
 
       <h3>Dados</h3>
       <label>

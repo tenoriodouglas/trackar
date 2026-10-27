@@ -60,6 +60,7 @@ const caller = (request: CallableRequest) => requireCaller(request.auth);
 export const sendCommand = callable((r) => requestCommand(getFirestore(), caller(r), r.data));
 export const claimVehicle = callable((r) => vehicles.claimVehicle(getFirestore(), caller(r), r.data));
 export const releaseVehicle = callable((r) => vehicles.releaseVehicle(getFirestore(), caller(r), r.data));
+export const renameVehicle = callable((r) => vehicles.renameVehicle(getFirestore(), caller(r), r.data));
 
 export const adminUpdateVehicle = callable((r) => vehicles.adminUpdateVehicle(getFirestore(), caller(r), r.data));
 export const adminSetOwners = callable((r) => vehicles.adminSetOwners(getFirestore(), getAuth(), caller(r), r.data));

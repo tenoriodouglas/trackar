@@ -34,6 +34,23 @@ export async function claimVehicle(db: Firestore, caller: Caller, data: unknown)
   return { vehicleId: imei };
 }
 
+/** Renames a vehicle the caller owns (admins can rename any). */
+export async function renameVehicle(db: Firestore, caller: Caller, data: unknown) {
+  const input = (data ?? {}) as { vehicleId?: unknown; name?: unknown };
+  const vehicleId = requireUniqueId(input.vehicleId);
+  const name = optionalText(input.name, "name");
+  if (!name) throw new HttpsError("invalid-argument", "name is required.");
+  const ref = db.collection(VEHICLES).doc(vehicleId);
+  await db.runTransaction(async (tx) => {
+    const snapshot = await tx.get(ref);
+    if (!snapshot.exists) throw new HttpsError("not-found", "Vehicle not found.");
+    const owners = (snapshot.get("ownerIds") as string[] | undefined) ?? [];
+    if (!caller.isAdmin && !owners.includes(caller.uid)) throw new HttpsError("permission-denied", "Not your vehicle.");
+    tx.update(ref, { name });
+  });
+  return { vehicleId };
+}
+
 /** Removes the caller from a vehicle's owners (the device keeps reporting, unassigned). */
 export async function releaseVehicle(db: Firestore, caller: Caller, data: unknown) {
   const vehicleId = requireUniqueId((data as { vehicleId?: unknown } | undefined)?.vehicleId);

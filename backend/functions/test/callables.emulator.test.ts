@@ -4,7 +4,7 @@ import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { beforeEach, describe, expect, it } from "vitest";
 import { requestCommand } from "../src/commands.js";
 import { VEHICLES } from "../src/ingest.js";
-import { adminSetOwners, claimVehicle } from "../src/vehicles.js";
+import { adminSetOwners, claimVehicle, renameVehicle } from "../src/vehicles.js";
 
 // Runs only against the emulators (npm run test:emulator).
 const enabled = Boolean(process.env.FIRESTORE_EMULATOR_HOST && process.env.FIREBASE_AUTH_EMULATOR_HOST);
@@ -50,13 +50,20 @@ describe.runIf(enabled)("callables", () => {
     expect(command.get("requestedBy")).toBe("alice");
   });
 
-  it("rejects blocking a moving vehicle and unknown command types", async () => {
+  it("blocks immediately even at speed, and rejects unknown command types", async () => {
     await db.collection(VEHICLES).doc("imei-4").set({
       ownerIds: ["alice"],
       position: { speedKmh: 80, fixTime: Timestamp.now() },
     });
-    await expect(requestCommand(db, alice, { vehicleId: "imei-4", type: "engineStop" })).rejects.toThrow(/moving/);
+    await expect(requestCommand(db, alice, { vehicleId: "imei-4", type: "engineStop" })).resolves.toHaveProperty("commandId");
     await expect(requestCommand(db, alice, { vehicleId: "imei-4", type: "reboot" })).rejects.toThrow(/Unsupported/);
+  });
+
+  it("lets owners rename their vehicles only", async () => {
+    await db.collection(VEHICLES).doc("imei-6").set({ name: "old", ownerIds: ["alice"] });
+    await renameVehicle(db, alice, { vehicleId: "imei-6", name: "Hilux" });
+    expect((await db.collection(VEHICLES).doc("imei-6").get()).get("name")).toBe("Hilux");
+    await expect(renameVehicle(db, bob, { vehicleId: "imei-6", name: "x" })).rejects.toThrow(/Not your vehicle/);
   });
 
   it("lets admins set owners by e-mail", async () => {

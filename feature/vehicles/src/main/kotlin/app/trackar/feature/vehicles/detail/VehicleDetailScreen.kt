@@ -180,7 +180,6 @@ internal fun VehicleDetailScreen(
 }
 
 private fun DetailError.message(): Int = when (this) {
-    DetailError.VEHICLE_MOVING -> R.string.feature_vehicles_error_moving
     DetailError.TOO_SOON -> R.string.feature_vehicles_error_too_soon
     DetailError.NOT_ALLOWED -> R.string.feature_vehicles_error_not_allowed
     DetailError.NETWORK -> R.string.feature_vehicles_error_network

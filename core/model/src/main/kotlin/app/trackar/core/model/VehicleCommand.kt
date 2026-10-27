@@ -20,7 +20,7 @@ data class VehicleCommand(
 
 /** The backend refused a command before sending it to the tracker. */
 class CommandRejectedException(val reason: Reason, message: String? = null) : Exception(message) {
-    enum class Reason { VEHICLE_MOVING, TOO_SOON, NOT_ALLOWED, UNKNOWN }
+    enum class Reason { TOO_SOON, NOT_ALLOWED, UNKNOWN }
 }
 
 /** The tracker is already linked to another account. */

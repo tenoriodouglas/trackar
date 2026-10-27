@@ -34,7 +34,7 @@ data class DetailActionState(
     val released: Boolean = false
 )
 
-enum class DetailError { VEHICLE_MOVING, TOO_SOON, NOT_ALLOWED, NETWORK, UNKNOWN }
+enum class DetailError { TOO_SOON, NOT_ALLOWED, NETWORK, UNKNOWN }
 
 @HiltViewModel(assistedFactory = VehicleDetailViewModel.Factory::class)
 class VehicleDetailViewModel @AssistedInject constructor(
@@ -68,7 +68,6 @@ class VehicleDetailViewModel @AssistedInject constructor(
 
     private fun Throwable.toDetailError(): DetailError = when (this) {
         is CommandRejectedException -> when (reason) {
-            CommandRejectedException.Reason.VEHICLE_MOVING -> DetailError.VEHICLE_MOVING
             CommandRejectedException.Reason.TOO_SOON -> DetailError.TOO_SOON
             CommandRejectedException.Reason.NOT_ALLOWED -> DetailError.NOT_ALLOWED
             CommandRejectedException.Reason.UNKNOWN -> DetailError.UNKNOWN

@@ -77,7 +77,8 @@ export function Setup() {
             no contato <b>normalmente fechado</b> para o carro funcionar se o rastreador desligar.
           </li>
           <li>
-            Por segurança o Trackar só aceita bloquear abaixo de 20 km/h e pede confirmação. Prefira instalação por profissional.
+            O bloqueio é imediato em qualquer velocidade, com confirmação que avisa se o veículo está andando. Alguns
+            modelos só cortam abaixo de ~20 km/h por trava no firmware. Prefira instalação por profissional.
           </li>
         </ul>
       </div>

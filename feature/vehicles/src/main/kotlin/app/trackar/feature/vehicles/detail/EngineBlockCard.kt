@@ -39,10 +39,13 @@ import app.trackar.core.model.CommandType
 import app.trackar.core.model.Vehicle
 import app.trackar.core.model.VehicleCommand
 import app.trackar.feature.vehicles.R
+import java.time.Duration
+import java.time.Instant
+import kotlin.math.roundToInt
 
 /**
- * Remote fuel/ignition cut. Blocking always asks for confirmation (market practice), and the
- * backend refuses it while the vehicle is moving fast.
+ * Remote fuel/ignition cut. Blocking is immediate at any speed, so the confirmation explicitly warns
+ * when the vehicle is moving.
  */
 @Composable
 internal fun EngineBlockCard(
@@ -116,6 +119,7 @@ internal fun EngineBlockCard(
         ConfirmCommandDialog(
             type = type,
             vehicleName = vehicle.name,
+            movingSpeedKmh = vehicle.movingSpeedKmh(),
             onConfirm = {
                 confirming = null
                 onCommand(type)
@@ -155,7 +159,13 @@ private fun CommandStatusLine(command: VehicleCommand) {
 }
 
 @Composable
-private fun ConfirmCommandDialog(type: CommandType, vehicleName: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+private fun ConfirmCommandDialog(
+    type: CommandType,
+    vehicleName: String,
+    movingSpeedKmh: Int?,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
     val blocking = type == CommandType.ENGINE_STOP
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -169,11 +179,21 @@ private fun ConfirmCommandDialog(type: CommandType, vehicleName: String, onConfi
             )
         },
         text = {
-            Text(
-                stringResource(
-                    if (blocking) R.string.feature_vehicles_block_warning else R.string.feature_vehicles_unblock_message
-                )
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (blocking && movingSpeedKmh != null) {
+                    Text(
+                        stringResource(R.string.feature_vehicles_block_moving_warning, movingSpeedKmh),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+                val message = if (blocking) {
+                    R.string.feature_vehicles_block_warning
+                } else {
+                    R.string.feature_vehicles_unblock_message
+                }
+                Text(stringResource(message))
+            }
         },
         confirmButton = {
             Button(
@@ -192,3 +212,13 @@ private fun ConfirmCommandDialog(type: CommandType, vehicleName: String, onConfi
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.feature_vehicles_cancel)) } }
     )
 }
+
+/** Current speed when the last fix is recent and shows movement; null when stopped or stale. */
+private fun Vehicle.movingSpeedKmh(now: Instant = Instant.now()): Int? {
+    val position = position ?: return null
+    val fresh = Duration.between(position.fixTime, now) < MOVING_FRESHNESS
+    return position.speedKmh.roundToInt().takeIf { fresh && it >= MOVING_THRESHOLD_KMH }
+}
+
+private val MOVING_FRESHNESS: Duration = Duration.ofMinutes(10)
+private const val MOVING_THRESHOLD_KMH = 3

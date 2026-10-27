@@ -51,10 +51,12 @@ APNs: Vivo `zap.vivo.com.br` · Claro `claro.com.br` · TIM `timbrasil.br` · Oi
 ignição. Use o contato **normalmente fechado (NF)** do relé: se o rastreador desligar, o carro continua funcionando.
 Recomenda-se instalação por profissional.
 
-## Segurança do bloqueio (padrão de mercado)
+## Bloqueio
 
-- Confirmação explícita no app e no painel.
-- Recusado acima de **20 km/h** (velocidade dos últimos 10 min).
+- **Imediato, em qualquer velocidade.** A confirmação no app e no portal avisa quando o veículo está em
+  movimento: o motor desliga andando e a direção e o freio podem ficar pesados.
+- Alguns modelos (ex.: vários GT06) só acionam o relé abaixo de ~20 km/h por trava no firmware; nesses, o corte
+  acontece quando o veículo desacelera.
 - Intervalo mínimo de 10 s entre comandos; comandos não entregues em 2 min expiram.
 - Se o rastreador estiver offline, o Traccar guarda o comando e entrega quando ele reconectar
   (status "aguardando o rastreador conectar").

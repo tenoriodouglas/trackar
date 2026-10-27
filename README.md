@@ -60,22 +60,26 @@ Rastreador ─TCP/UDP─▶   │ VM e2-micro (us-east1, cota grátis)          
 - Mapa ao vivo estilo navegação: setas que giram conforme o rumo e deslizam entre posições, "seguir veículo",
   bolha de velocidade, busca e direção por extenso ("Indo para Nordeste").
 - Histórico por dia: rota, reprodução do percurso, distância, velocidade máxima, tempo rodando e paradas.
-- Bloqueio/desbloqueio remoto com confirmação e status em tempo real.
+- Bloqueio/desbloqueio remoto imediato, com confirmação (alerta se em movimento) e status em tempo real.
 - Adicionar rastreador pelo IMEI e remover veículo da conta.
 - Atualização automática da APK de teste (ver [limitações](#decisões-e-limitações)).
 
 **Portal web — clientes** (qualquer usuário)
-- Meus veículos: lista, mapa, status, endereço, "como chegar", bloqueio.
+- Meus veículos: lista com botão **Bloquear/Desbloquear direto em cada veículo**, mapa, status, endereço, "como chegar".
+- Painel do veículo: renomear, bloqueio, últimos comandos (quando e resultado), histórico, remover da conta.
 - Histórico por dia com rota, paradas e resumo (mesmo cálculo do app).
 - Adicionar rastreador pelo IMEI.
+- Minha conta: trocar senha ou receber link de redefinição.
 
 **Portal web — administração** (usuários com papel admin)
 - Frota completa: mapa, totais (online, bloqueados, sem dono), editar, definir donos por e-mail, excluir.
 - Usuários: criar conta de cliente com senha gerada, dar/tirar admin, desativar.
 - Configurar rastreador: IP do servidor, comandos SMS por modelo, APNs, ligação do relé.
 
-**Segurança do bloqueio:** confirmação explícita, recusado acima de **20 km/h**, intervalo mínimo de 10 s,
+**Bloqueio imediato:** aceito em qualquer velocidade (decisão do dono do produto). A confirmação avisa
+explicitamente quando o veículo está em movimento (motor desliga andando). Intervalo mínimo de 10 s entre comandos,
 expira em 2 min sem entrega, registro de quem pediu. Se o rastreador estiver offline, o comando fica na fila.
+Alguns modelos (ex.: vários GT06) só acionam o relé abaixo de ~20 km/h por trava no próprio firmware.
 
 ## Estrutura do repositório
 
@@ -212,7 +216,7 @@ com `MAPS_API_KEY=...`.
   O Traccar cobre 200+ protocolos e roda na VM grátis.
 - **Portal no Firebase Hosting, não na VM:** HTTPS e domínio grátis, sem disputar a memória de 1 GB com o Traccar.
 - **Ponte em vez de expor o Traccar:** a VM só abre as portas dos rastreadores; comandos chegam pelo Firestore.
-- **Bloqueio só abaixo de 20 km/h** e com confirmação (padrão de mercado e segurança).
+- **Bloqueio imediato em qualquer velocidade**, com confirmação que alerta sobre corte em movimento.
 - **Atualização automática da APK** depende de o repositório ser público (o app não guarda token do GitHub).
   Com o repo privado ela fica inativa sem erro; alternativa: publicar a APK num bucket público.
 - **Recriar a VM** (mudança no script de inicialização) mantém o IP; perde-se só o cadastro interno do Traccar,
