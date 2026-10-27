@@ -2,4 +2,11 @@
 <resources>
     <string name="nav_map">Mapa</string>
     <string name="nav_vehicles">Veículos</string>
+    <string name="update_title">Nova versão %1$s (build %2$d)</string>
+    <string name="update_downloading">Baixando a atualização… O instalador abre em seguida.</string>
+    <string name="update_permission_message">Para atualizar automaticamente, permita que o Trackar instale apps.</string>
+    <string name="update_allow">Permitir</string>
+    <string name="update_failed">O download falhou. Verifique sua conexão.</string>
+    <string name="update_retry">Tentar de novo</string>
+    <string name="update_later">Depois</string>
 </resources>

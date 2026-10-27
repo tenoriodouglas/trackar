@@ -11,6 +11,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.trackar.core.designsystem.theme.TrackarTheme
 import app.trackar.core.model.SessionState
 import app.trackar.ui.TrackarApp
+import app.trackar.update.UpdateGate
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -30,6 +31,7 @@ class MainActivity : ComponentActivity() {
             val sessionState by viewModel.sessionState.collectAsStateWithLifecycle()
             TrackarTheme {
                 TrackarApp(sessionState)
+                UpdateGate()
             }
         }
     }

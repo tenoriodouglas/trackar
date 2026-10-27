@@ -90,11 +90,21 @@ jobs:
           retention-days: 5
 
       # Stable file name + fixed tag: the download link never changes and releases don't pile up.
-      - name: Stage debug APK
+      # latest.json drives the in-app self-updater (versionCode = run number).
+      - name: Stage debug APK and update manifest
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           mkdir -p release-apk
           cp app/build/outputs/apk/debug/app-debug.apk release-apk/trackar-latest-debug.apk
+          version_name=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts | head -1)
+          jq -n \
+            --argjson versionCode "$VERSION_CODE" \
+            --arg versionName "$version_name" \
+            --arg apkUrl "https://github.com/${{ github.repository }}/releases/download/apk-latest/trackar-latest-debug.apk" \
+            --arg notes "$(git log -1 --pretty=%s)" \
+            '{versionCode: $versionCode, versionName: $versionName, apkUrl: $apkUrl, notes: $notes}' \
+            > release-apk/latest.json
+          cat release-apk/latest.json
 
       - name: Publish rolling release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -106,7 +116,9 @@ jobs:
             APK de teste gerada automaticamente a partir do último commit da main.
             Instala lado a lado com a versão da Play Store (pacote app.trackar.debug).
           prerelease: true
-          files: release-apk/trackar-latest-debug.apk
+          files: |
+            release-apk/trackar-latest-debug.apk
+            release-apk/latest.json
 
       # The action creates the tag but never moves it; an old anchor keeps stale history reachable.
       - name: Move apk-latest tag to current commit

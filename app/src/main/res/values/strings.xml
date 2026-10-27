@@ -3,4 +3,11 @@
     <string name="app_name" translatable="false">Trackar</string>
     <string name="nav_map">Map</string>
     <string name="nav_vehicles">Vehicles</string>
+    <string name="update_title">New version %1$s (build %2$d)</string>
+    <string name="update_downloading">Downloading the update… The installer opens right after.</string>
+    <string name="update_permission_message">To update automatically, allow Trackar to install apps.</string>
+    <string name="update_allow">Allow</string>
+    <string name="update_failed">The download failed. Check your connection.</string>
+    <string name="update_retry">Try again</string>
+    <string name="update_later">Later</string>
 </resources>

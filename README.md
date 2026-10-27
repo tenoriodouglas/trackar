@@ -85,6 +85,9 @@ Terraform. Detalhes: [docs/gateway.md](docs/gateway.md) · schema: [docs/firesto
 
 `versionCode` = número da execução (`VERSION_CODE`), sempre crescente.
 
+A APK de teste se **atualiza sozinha**: ao abrir, o app lê o `latest.json` da release `apk-latest`, baixa
+a versão nova e abre o instalador (a versão da Play Store não tem isso; quem atualiza é a loja).
+
 Link fixo da APK de teste:
 `https://github.com/tenoriodouglas/trackar/releases/download/apk-latest/trackar-latest-debug.apk`
 
