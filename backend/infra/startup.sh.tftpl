@@ -44,6 +44,9 @@ cat > /opt/traccar/traccar.xml <<XML
 </properties>
 XML
 
+# Admin account the bridge uses on localhost (also valid for the Traccar UI through the IAP tunnel).
+ADMIN_PASSWORD=$(gcloud secrets versions access latest --secret="${admin_secret}")
+
 docker pull "${traccar_image}"
 docker rm -f traccar >/dev/null 2>&1 || true
 docker run -d --name traccar --restart unless-stopped --network host \
@@ -53,3 +56,36 @@ docker run -d --name traccar --restart unless-stopped --network host \
   -v /opt/traccar/logs:/opt/traccar/logs \
   -v /opt/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro \
   "${traccar_image}"
+
+# ---------- Command bridge (Firestore -> Traccar) ----------
+gcloud auth configure-docker "${registry_host}" --quiet >/dev/null 2>&1 || true
+mkdir -p /opt/trackar
+cat > /opt/trackar/bridge.env <<ENV
+TRACCAR_URL=http://127.0.0.1:8082
+TRACCAR_EMAIL=bridge@trackar.local
+TRACCAR_PASSWORD=$ADMIN_PASSWORD
+ENV
+chmod 600 /opt/trackar/bridge.env
+
+# Pulls the latest bridge image and restarts the container only when it changed. Run at boot and every 5 min,
+# so a CI push is live within minutes without SSH access from CI.
+cat > /opt/trackar/update-bridge.sh <<'SCRIPT'
+#!/bin/bash
+set -uo pipefail
+IMAGE="${bridge_image}"
+docker pull -q "$IMAGE" >/dev/null 2>&1 || exit 0
+NEW=$(docker image inspect -f '{{.Id}}' "$IMAGE")
+CURRENT=$(docker inspect -f '{{.Image}}' trackar-bridge 2>/dev/null || true)
+if [ "$NEW" != "$CURRENT" ]; then
+  docker rm -f trackar-bridge >/dev/null 2>&1 || true
+  docker run -d --name trackar-bridge --restart unless-stopped --network host \
+    --memory 192m --log-opt max-size=10m --log-opt max-file=3 \
+    --env-file /opt/trackar/bridge.env "$IMAGE"
+  docker image prune -f >/dev/null 2>&1 || true
+fi
+SCRIPT
+chmod 700 /opt/trackar/update-bridge.sh
+echo '*/5 * * * * root /opt/trackar/update-bridge.sh' > /etc/cron.d/trackar-bridge
+# Force a restart so a rotated password is picked up.
+docker rm -f trackar-bridge >/dev/null 2>&1 || true
+/opt/trackar/update-bridge.sh

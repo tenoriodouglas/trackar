@@ -52,6 +52,28 @@ jobs:
       - run: npm run typecheck
       - run: npm run test:emulator
 
+  bridge:
+    name: Bridge tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend/bridge
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/bridge/package-lock.json
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Docker build
+        run: docker build -t trackar-bridge:ci .
+
   terraform:
     name: Terraform validate
     runs-on: ubuntu-latest
@@ -72,7 +94,7 @@ jobs:
 
   deploy:
     name: Deploy backend
-    needs: [functions, terraform]
+    needs: [functions, bridge, terraform]
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -140,6 +162,16 @@ jobs:
             echo "- Ingest URL: \`$(terraform output -raw ingest_url)\`"
             echo "- Traccar UI: \`$(terraform output -raw traccar_ui_tunnel)\`"
           } >> "$GITHUB_STEP_SUMMARY"
+          echo "TRACKER_IP=$(terraform output -raw tracker_server_ip)" >> "$GITHUB_ENV"
+          echo "BRIDGE_IMAGE=$(terraform output -raw bridge_image)" >> "$GITHUB_ENV"
+
+      # The VM polls the registry every 5 minutes and restarts the bridge when the image changes.
+      - name: Publish bridge image
+        if: env.HAS_SECRETS == 'true'
+        run: |
+          gcloud auth configure-docker "${BRIDGE_IMAGE%%/*}" --quiet
+          docker build -t "$BRIDGE_IMAGE" -t "${BRIDGE_IMAGE%:*}:${GITHUB_SHA::12}" backend/bridge
+          docker push --all-tags "${BRIDGE_IMAGE%:*}"
 
       - uses: actions/setup-node@v7
         if: env.HAS_SECRETS == 'true'
@@ -153,3 +185,9 @@ jobs:
         run: |
           npm ci --prefix backend/functions
           npx --prefix backend/functions firebase deploy --only functions --project "$PROJECT_ID" --non-interactive --force
+
+      - name: Publish server config for the admin panel
+        if: env.HAS_SECRETS == 'true'
+        run: |
+          npm run build --prefix backend/functions
+          npm run set-server-config --prefix backend/functions -- --tracker-ip "$TRACKER_IP"

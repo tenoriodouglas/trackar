@@ -32,7 +32,7 @@ variable "machine_type" {
 variable "traccar_heap_mb" {
   description = "JVM heap for Traccar; keep well below VM memory."
   type        = number
-  default     = 384
+  default     = 320
 }
 
 variable "traccar_image" {

@@ -25,6 +25,7 @@ export async function savePosition(db: Firestore, data: ParsedForward, retention
       lastUpdate: Timestamp.fromDate(now),
     };
     if (isNewer) update.position = data.position;
+    if (data.commandResult) update.lastCommandResult = { text: data.commandResult, receivedAt: Timestamp.fromDate(now) };
     if (!snapshot.exists) {
       update.name = data.deviceName;
       update.category = data.category;

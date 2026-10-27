@@ -16,12 +16,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,12 +55,17 @@ import app.trackar.feature.vehicles.R
 fun VehicleListRoute(onVehicleClick: (String) -> Unit, viewModel: VehicleListViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val addTracker by viewModel.addTracker.collectAsStateWithLifecycle()
+    if (addTracker != AddTrackerState.Hidden) {
+        AddTrackerDialog(state = addTracker, onSubmit = viewModel::addTracker, onDismiss = viewModel::hideAddTracker)
+    }
     VehicleListScreen(
         uiState = uiState,
         isRefreshing = isRefreshing,
         onQueryChange = viewModel::onQueryChange,
         onRefresh = viewModel::refresh,
         onLogout = viewModel::logout,
+        onAddTracker = viewModel::showAddTracker,
         onVehicleClick = onVehicleClick
     )
 }
@@ -71,11 +78,19 @@ internal fun VehicleListScreen(
     onQueryChange: (String) -> Unit,
     onRefresh: () -> Unit,
     onLogout: () -> Unit,
+    onAddTracker: () -> Unit,
     onVehicleClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
         modifier = modifier,
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onAddTracker,
+                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                text = { Text(stringResource(R.string.feature_vehicles_add)) }
+            )
+        },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.feature_vehicles_title)) },
@@ -186,6 +201,7 @@ private fun VehicleListPreview() {
             onQueryChange = {},
             onRefresh = {},
             onLogout = {},
+            onAddTracker = {},
             onVehicleClick = {}
         )
     }

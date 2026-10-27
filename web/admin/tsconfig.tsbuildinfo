@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/api.ts","./src/firebase.ts","./src/main.tsx","./src/components/FleetMap.tsx","./src/lib/devices.ts","./src/lib/format.ts","./src/lib/types.ts","./src/pages/Login.tsx","./src/pages/Setup.tsx","./src/pages/Users.tsx","./src/pages/Vehicles.tsx","./test/format.test.ts"],"version":"5.9.3"}

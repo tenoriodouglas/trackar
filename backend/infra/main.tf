@@ -12,7 +12,8 @@ locals {
     "cloudscheduler.googleapis.com",
   ]
   # Same URL scheme Firebase uses for HTTPS functions.
-  ingest_url = "https://${var.region}-${var.project_id}.cloudfunctions.net/ingestPosition"
+  ingest_url   = "https://${var.region}-${var.project_id}.cloudfunctions.net/ingestPosition"
+  bridge_image = "${var.vm_region}-docker.pkg.dev/${var.project_id}/trackar/bridge:latest"
 }
 
 resource "google_project_service" "services" {
@@ -42,6 +43,50 @@ resource "google_secret_manager_secret_version" "ingest_token" {
   secret_data = random_password.ingest_token.result
 }
 
+# ---------- Traccar admin account (used by the bridge on localhost) ----------
+
+resource "random_password" "traccar_admin" {
+  length  = 32
+  special = false
+}
+
+resource "google_secret_manager_secret" "traccar_admin" {
+  secret_id = "TRACCAR_ADMIN_PASSWORD"
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.services]
+}
+
+resource "google_secret_manager_secret_version" "traccar_admin" {
+  secret      = google_secret_manager_secret.traccar_admin.id
+  secret_data = random_password.traccar_admin.result
+}
+
+# ---------- Bridge image registry (free tier: 0.5 GB) ----------
+
+resource "google_artifact_registry_repository" "trackar" {
+  repository_id = "trackar"
+  location      = var.vm_region
+  format        = "DOCKER"
+
+  cleanup_policies {
+    id     = "keep-recent"
+    action = "KEEP"
+    most_recent_versions {
+      keep_count = 3
+    }
+  }
+  cleanup_policies {
+    id     = "delete-old"
+    action = "DELETE"
+    condition {
+      older_than = "604800s"
+    }
+  }
+  depends_on = [google_project_service.services]
+}
+
 # ---------- Traccar VM ----------
 
 resource "google_service_account" "traccar" {
@@ -54,6 +99,26 @@ resource "google_secret_manager_secret_iam_member" "traccar_reads_token" {
   secret_id = google_secret_manager_secret.ingest_token.id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.traccar.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "traccar_reads_admin" {
+  secret_id = google_secret_manager_secret.traccar_admin.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.traccar.email}"
+}
+
+resource "google_artifact_registry_repository_iam_member" "traccar_pulls_bridge" {
+  location   = google_artifact_registry_repository.trackar.location
+  repository = google_artifact_registry_repository.trackar.name
+  role       = "roles/artifactregistry.reader"
+  member     = "serviceAccount:${google_service_account.traccar.email}"
+}
+
+# Bridge reads pending commands and writes their status.
+resource "google_project_iam_member" "traccar_firestore" {
+  project = var.project_id
+  role    = "roles/datastore.user"
+  member  = "serviceAccount:${google_service_account.traccar.email}"
 }
 
 resource "google_project_iam_member" "traccar_observability" {
@@ -132,18 +197,29 @@ resource "google_compute_instance" "traccar" {
 
   metadata = {
     enable-oslogin = "TRUE"
-    startup-script = templatefile("${path.module}/startup.sh.tftpl", {
-      traccar_image = var.traccar_image
-      heap_mb       = var.traccar_heap_mb
-      ingest_url    = local.ingest_url
-      secret_name   = google_secret_manager_secret.ingest_token.secret_id
-    })
   }
+
+  # A changed startup script recreates the VM so it always runs (static IP is kept; positions live in
+  # Firestore, Traccar only holds its device registry, which is rebuilt automatically).
+  metadata_startup_script = templatefile("${path.module}/startup.sh.tftpl", {
+    traccar_image = var.traccar_image
+    heap_mb       = var.traccar_heap_mb
+    bridge_image  = local.bridge_image
+    admin_secret  = google_secret_manager_secret.traccar_admin.secret_id
+    registry_host = "${var.vm_region}-docker.pkg.dev"
+    ingest_url    = local.ingest_url
+    secret_name   = google_secret_manager_secret.ingest_token.secret_id
+  })
 
   service_account {
     email  = google_service_account.traccar.email
     scopes = ["cloud-platform"]
   }
 
-  depends_on = [google_secret_manager_secret_version.ingest_token, google_secret_manager_secret_iam_member.traccar_reads_token]
+  depends_on = [
+    google_secret_manager_secret_version.ingest_token,
+    google_secret_manager_secret_version.traccar_admin,
+    google_secret_manager_secret_iam_member.traccar_reads_token,
+    google_secret_manager_secret_iam_member.traccar_reads_admin,
+  ]
 }

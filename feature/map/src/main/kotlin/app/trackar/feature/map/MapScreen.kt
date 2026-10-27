@@ -27,11 +27,13 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.NearMe
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ZoomOutMap
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -417,6 +419,19 @@ private fun VehicleSheet(vehicle: Vehicle, onClose: () -> Unit, onOpenHistory: (
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (vehicle.engineBlocked == true) {
+                    AssistChip(
+                        onClick = {},
+                        leadingIcon = {
+                            Icon(Icons.Filled.Lock, contentDescription = null, modifier = Modifier.size(18.dp))
+                        },
+                        label = { Text(stringResource(R.string.feature_map_blocked)) },
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            labelColor = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    )
+                }
                 position.ignition?.let { on ->
                     AssistChip(
                         onClick = {},

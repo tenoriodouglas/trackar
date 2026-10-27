@@ -12,6 +12,7 @@ on:
       - "fastlane/**"
       - "firebase/**"
       - "backend/**"
+      - "web/**"
       - "**/*.md"
   pull_request:
     paths-ignore:
@@ -19,6 +20,7 @@ on:
       - "fastlane/**"
       - "firebase/**"
       - "backend/**"
+      - "web/**"
       - "**/*.md"
   workflow_dispatch:
     inputs:

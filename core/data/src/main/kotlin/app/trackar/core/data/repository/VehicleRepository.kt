@@ -1,5 +1,6 @@
 package app.trackar.core.data.repository
 
+import app.trackar.core.model.CommandType
 import app.trackar.core.model.ConnectionState
 import app.trackar.core.model.Vehicle
 import app.trackar.core.model.VehiclePosition
@@ -21,4 +22,13 @@ interface VehicleRepository {
 
     /** Position history of one vehicle in [from, to), oldest first. */
     suspend fun getHistory(vehicleId: String, from: Instant, to: Instant): Result<List<VehiclePosition>>
+
+    /** Requests a remote command; progress is reflected in [Vehicle.lastCommand]. */
+    suspend fun sendCommand(vehicleId: String, type: CommandType): Result<Unit>
+
+    /** Links a tracker (by IMEI) to the signed-in user. */
+    suspend fun claimVehicle(imei: String, name: String?): Result<Unit>
+
+    /** Unlinks a vehicle from the signed-in user. */
+    suspend fun releaseVehicle(vehicleId: String): Result<Unit>
 }

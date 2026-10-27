@@ -15,8 +15,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.LinkOff
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,9 +29,15 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.trackar.core.designsystem.component.StatusIndicator
 import app.trackar.core.designsystem.component.relativeLabel
 import app.trackar.core.designsystem.component.speedLabel
+import app.trackar.core.model.CommandType
 import app.trackar.core.model.Coordinates
 import app.trackar.core.model.Vehicle
 import app.trackar.feature.vehicles.R
@@ -54,17 +66,33 @@ fun VehicleDetailRoute(
     )
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    VehicleDetailScreen(uiState = uiState, onBack = onBack, onOpenHistory = onOpenHistory)
+    val actionState by viewModel.actionState.collectAsStateWithLifecycle()
+    LaunchedEffect(actionState.released) { if (actionState.released) onBack() }
+    VehicleDetailScreen(
+        uiState = uiState,
+        actionState = actionState,
+        onBack = onBack,
+        onOpenHistory = onOpenHistory,
+        onCommand = viewModel::sendCommand,
+        onRelease = viewModel::release,
+        onDismissError = viewModel::dismissError
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun VehicleDetailScreen(
     uiState: VehicleDetailUiState,
+    actionState: DetailActionState,
     onBack: () -> Unit,
     onOpenHistory: () -> Unit,
+    onCommand: (CommandType) -> Unit,
+    onRelease: () -> Unit,
+    onDismissError: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
+    var confirmRelease by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -76,6 +104,26 @@ internal fun VehicleDetailScreen(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.feature_vehicles_back)
                         )
+                    }
+                },
+                actions = {
+                    if (uiState is VehicleDetailUiState.Ready) {
+                        IconButton(onClick = { menuOpen = true }) {
+                            Icon(
+                                Icons.Filled.MoreVert,
+                                contentDescription = stringResource(R.string.feature_vehicles_more)
+                            )
+                        }
+                        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.feature_vehicles_release)) },
+                                leadingIcon = { Icon(Icons.Filled.LinkOff, contentDescription = null) },
+                                onClick = {
+                                    menuOpen = false
+                                    confirmRelease = true
+                                }
+                            )
+                        }
                     }
                 }
             )
@@ -90,16 +138,65 @@ internal fun VehicleDetailScreen(
                     modifier = Modifier.align(Alignment.Center)
                 )
 
-                is VehicleDetailUiState.Ready -> VehicleDetails(uiState.vehicle, onOpenHistory)
+                is VehicleDetailUiState.Ready -> VehicleDetails(
+                    uiState.vehicle,
+                    actionState.sending,
+                    onOpenHistory,
+                    onCommand
+                )
             }
         }
     }
+
+    actionState.error?.let { error ->
+        AlertDialog(
+            onDismissRequest = onDismissError,
+            title = { Text(stringResource(R.string.feature_vehicles_action_failed)) },
+            text = { Text(stringResource(error.message())) },
+            confirmButton = {
+                TextButton(onClick = onDismissError) { Text(stringResource(R.string.feature_vehicles_ok)) }
+            }
+        )
+    }
+
+    if (confirmRelease) {
+        AlertDialog(
+            onDismissRequest = { confirmRelease = false },
+            title = { Text(stringResource(R.string.feature_vehicles_release)) },
+            text = { Text(stringResource(R.string.feature_vehicles_release_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmRelease = false
+                    onRelease()
+                }) { Text(stringResource(R.string.feature_vehicles_release_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    confirmRelease = false
+                }) { Text(stringResource(R.string.feature_vehicles_cancel)) }
+            }
+        )
+    }
+}
+
+private fun DetailError.message(): Int = when (this) {
+    DetailError.VEHICLE_MOVING -> R.string.feature_vehicles_error_moving
+    DetailError.TOO_SOON -> R.string.feature_vehicles_error_too_soon
+    DetailError.NOT_ALLOWED -> R.string.feature_vehicles_error_not_allowed
+    DetailError.NETWORK -> R.string.feature_vehicles_error_network
+    DetailError.UNKNOWN -> R.string.feature_vehicles_error_unknown
 }
 
 @Composable
-private fun VehicleDetails(vehicle: Vehicle, onOpenHistory: () -> Unit) {
+private fun VehicleDetails(
+    vehicle: Vehicle,
+    sending: Boolean,
+    onOpenHistory: () -> Unit,
+    onCommand: (CommandType) -> Unit
+) {
     val position = vehicle.position
     Column(Modifier.verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
+        EngineBlockCard(vehicle, sending, onCommand, Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
         DetailRow(R.string.feature_vehicles_status) { StatusIndicator(vehicle.status) }
         DetailRow(R.string.feature_vehicles_identifier, vehicle.uniqueId)
         DetailRow(R.string.feature_vehicles_last_update, vehicle.lastUpdate.relativeLabel())
@@ -114,6 +211,7 @@ private fun VehicleDetails(vehicle: Vehicle, onOpenHistory: () -> Unit) {
             ActionButtons(position.coordinates, onOpenHistory)
         } else {
             DetailRow(R.string.feature_vehicles_address, stringResource(R.string.feature_vehicles_no_position))
+            HistoryButton(onOpenHistory)
         }
     }
 }
@@ -124,6 +222,14 @@ private fun DetailRow(label: Int, value: String) = DetailRow(label) { Text(value
 @Composable
 private fun DetailRow(label: Int, value: @Composable () -> Unit) {
     ListItem(overlineContent = { Text(stringResource(label)) }, headlineContent = value)
+}
+
+@Composable
+private fun HistoryButton(onOpenHistory: () -> Unit) {
+    Button(onClick = onOpenHistory, modifier = Modifier.fillMaxWidth().padding(16.dp).height(52.dp)) {
+        Icon(Icons.Filled.History, contentDescription = null)
+        Text(stringResource(R.string.feature_vehicles_history), modifier = Modifier.padding(start = 8.dp))
+    }
 }
 
 /** History plus hand-off to any installed maps app via a standard geo intent. */

@@ -37,6 +37,8 @@ export interface ParsedForward {
   deviceName: string;
   category: string | null;
   position: PositionDoc;
+  /** Device reply to a command (Traccar puts it in the `result` attribute). */
+  commandResult: string | null;
 }
 
 export class InvalidPayloadError extends Error {}
@@ -74,6 +76,7 @@ export function parseForward(body: unknown): ParsedForward {
       powerVolts: typeof attributes.power === "number" ? attributes.power : null,
       valid: position.valid ?? true,
     },
+    commandResult: typeof attributes.result === "string" ? attributes.result.slice(0, 500) : null,
   };
 }
 

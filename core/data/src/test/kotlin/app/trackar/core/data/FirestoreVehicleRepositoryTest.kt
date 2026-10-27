@@ -3,8 +3,10 @@ package app.trackar.core.data
 import app.cash.turbine.test
 import app.trackar.core.data.repository.FirestoreVehicleRepository
 import app.trackar.core.firebase.AuthDataSource
+import app.trackar.core.firebase.VehicleActionsDataSource
 import app.trackar.core.firebase.VehicleDataSource
 import app.trackar.core.firebase.VehicleSnapshot
+import app.trackar.core.model.CommandType
 import app.trackar.core.model.ConnectionState
 import app.trackar.core.model.DeviceStatus
 import app.trackar.core.model.Session
@@ -56,9 +58,15 @@ class FirestoreVehicleRepositoryTest {
         }
     }
 
-    private fun TestScope.repository() = FirestoreVehicleRepository(auth, dataSource, backgroundScope)
+    private fun TestScope.repository() = FirestoreVehicleRepository(auth, dataSource, NoActions, backgroundScope)
 
     private fun vehicle(id: String) = Vehicle(id, "V$id", id, DeviceStatus.ONLINE, null, null, null)
+
+    private object NoActions : VehicleActionsDataSource {
+        override suspend fun sendCommand(vehicleId: String, type: CommandType) = Unit
+        override suspend fun claim(imei: String, name: String?) = Unit
+        override suspend fun release(vehicleId: String) = Unit
+    }
 
     private class FakeAuthDataSource : AuthDataSource {
         override val session = MutableStateFlow<Session?>(null)

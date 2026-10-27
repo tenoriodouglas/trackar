@@ -16,4 +16,5 @@
     <string name="feature_map_details">Detalhes</string>
     <string name="feature_map_no_vehicles">Nenhum veículo ainda</string>
     <string name="feature_map_fleet_summary">%1$d veículos · %2$d online</string>
+    <string name="feature_map_blocked">Bloqueado</string>
 </resources>

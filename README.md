@@ -9,6 +9,9 @@ Rastreamento veicular em tempo real para dispositivos M2M/GPS. Android nativo.
 - **Histórico de trajetos:** escolha o dia, veja a rota no mapa, reproduza o percurso e confira
   distância, velocidade máxima, tempo rodando e paradas.
 - **Frota:** lista com busca, status online/offline, ignição, bateria e endereço.
+- **Bloqueio remoto:** corta combustível/ignição pelo rastreador, com confirmação e trava de velocidade (≤ 20 km/h).
+- **Adicionar rastreador pelo app:** vincula pelo IMEI da etiqueta.
+- **Painel admin web** (`https://trackar-e3945.web.app`): frota no mapa, donos, usuários, bloqueio e guia de configuração.
 - **Offline:** últimas posições ficam em cache.
 
 ## Stack
@@ -43,7 +46,9 @@ core/common         -> dispatchers, escopos, utilitários
 core/testing        -> fakes e regras de teste
 build-logic         -> convention plugins do Gradle
 backend/functions   -> Cloud Functions (TypeScript): ingestão de posições, status offline, cadastro de veículo
-backend/infra       -> Terraform: VM do Traccar, IP fixo, firewall, secret
+backend/bridge      -> ponte na VM: comandos do Firestore → API local do Traccar
+backend/infra       -> Terraform: VM do Traccar, IP fixo, firewall, secrets, registry
+web/admin           -> painel admin (React + Firebase Hosting)
 ```
 
 Dependências apontam sempre para dentro: `feature -> data -> firebase -> model`.
@@ -56,7 +61,7 @@ Rastreador ─TCP/UDP─▶ Traccar (VM GCP) ─▶ Cloud Function ─▶ Firest
 
 O rastreador não fala com o Firebase diretamente: um **Traccar** numa VM do Google Cloud decodifica o protocolo
 e envia cada posição a uma **Cloud Function**, que grava no Firestore. Tudo no Google Cloud, provisionado por
-Terraform. Detalhes: [docs/gateway.md](docs/gateway.md) · schema: [docs/firestore-schema.md](docs/firestore-schema.md).
+Terraform. Detalhes: [docs/gateway.md](docs/gateway.md) · rastreadores: [docs/devices.md](docs/devices.md) · schema: [docs/firestore-schema.md](docs/firestore-schema.md).
 
 ## Configuração
 
@@ -82,6 +87,8 @@ Terraform. Detalhes: [docs/gateway.md](docs/gateway.md) · schema: [docs/firesto
 | `cleanup-storage.yml` | semanal ou manual | apaga artifacts antigos |
 | `backend.yml` | mudança em `backend/**` | testes (emulador) + `terraform apply` + deploy das functions |
 | `register-vehicle.yml` | manual | vincula IMEI do rastreador a um usuário |
+| `admin-web.yml` | mudança em `web/admin/**` | testes + build + deploy do painel no Firebase Hosting |
+| `set-admin.yml` | manual | dá (ou tira) acesso de administrador ao painel |
 
 `versionCode` = número da execução (`VERSION_CODE`), sempre crescente.
 

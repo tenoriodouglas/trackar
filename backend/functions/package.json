@@ -11,7 +11,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "register-vehicle": "node lib/scripts/registerVehicle.js",
-    "test:emulator": "firebase emulators:exec --only firestore --project demo-trackar --config ../../firebase.json 'vitest run'"
+    "test:emulator": "firebase emulators:exec --only firestore,auth --project demo-trackar --config ../../firebase.json 'vitest run'",
+    "set-admin": "node lib/scripts/setAdmin.js",
+    "set-server-config": "node lib/scripts/setServerConfig.js"
   },
   "dependencies": {
     "firebase-admin": "^14.5.0",

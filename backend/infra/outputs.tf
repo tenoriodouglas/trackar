@@ -8,6 +8,11 @@ output "ingest_url" {
   value       = local.ingest_url
 }
 
+output "bridge_image" {
+  description = "Image the VM pulls for the Traccar <-> Firestore command bridge."
+  value       = local.bridge_image
+}
+
 output "traccar_ui_tunnel" {
   description = "Opens the Traccar admin UI at http://localhost:8082 through IAP."
   value       = "gcloud compute ssh traccar --zone ${var.zone} --tunnel-through-iap -- -N -L 8082:localhost:8082"

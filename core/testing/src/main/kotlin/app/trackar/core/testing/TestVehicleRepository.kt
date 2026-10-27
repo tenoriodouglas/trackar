@@ -1,6 +1,7 @@
 package app.trackar.core.testing
 
 import app.trackar.core.data.repository.VehicleRepository
+import app.trackar.core.model.CommandType
 import app.trackar.core.model.ConnectionState
 import app.trackar.core.model.Vehicle
 import app.trackar.core.model.VehiclePosition
@@ -35,6 +36,28 @@ class TestVehicleRepository : VehicleRepository {
     override suspend fun getHistory(vehicleId: String, from: Instant, to: Instant): Result<List<VehiclePosition>> {
         lastHistoryRange = from to to
         return historyResult
+    }
+
+    /** Results returned by the action methods; requests are recorded for assertions. */
+    var commandResult: Result<Unit> = Result.success(Unit)
+    var claimResult: Result<Unit> = Result.success(Unit)
+    val sentCommands = mutableListOf<Pair<String, CommandType>>()
+    val claims = mutableListOf<Pair<String, String?>>()
+    val released = mutableListOf<String>()
+
+    override suspend fun sendCommand(vehicleId: String, type: CommandType): Result<Unit> {
+        sentCommands += vehicleId to type
+        return commandResult
+    }
+
+    override suspend fun claimVehicle(imei: String, name: String?): Result<Unit> {
+        claims += imei to name
+        return claimResult
+    }
+
+    override suspend fun releaseVehicle(vehicleId: String): Result<Unit> {
+        released += vehicleId
+        return Result.success(Unit)
     }
 
     override suspend fun refresh(): Result<Unit> {

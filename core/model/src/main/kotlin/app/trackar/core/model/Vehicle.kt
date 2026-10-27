@@ -10,7 +10,10 @@ data class Vehicle(
     val status: DeviceStatus,
     val lastUpdate: Instant?,
     val category: String?,
-    val position: VehiclePosition?
+    val position: VehiclePosition?,
+    /** Last block state confirmed by the gateway; null when never commanded. */
+    val engineBlocked: Boolean? = null,
+    val lastCommand: VehicleCommand? = null
 )
 
 enum class DeviceStatus { ONLINE, OFFLINE, UNKNOWN }

@@ -3,7 +3,9 @@ package app.trackar.core.data.repository
 import app.trackar.core.common.di.ApplicationScope
 import app.trackar.core.common.result.suspendRunCatching
 import app.trackar.core.firebase.AuthDataSource
+import app.trackar.core.firebase.VehicleActionsDataSource
 import app.trackar.core.firebase.VehicleDataSource
+import app.trackar.core.model.CommandType
 import app.trackar.core.model.ConnectionState
 import app.trackar.core.model.Vehicle
 import app.trackar.core.model.VehiclePosition
@@ -35,6 +37,7 @@ import kotlinx.coroutines.flow.shareIn
 internal class FirestoreVehicleRepository @Inject constructor(
     private val authDataSource: AuthDataSource,
     private val vehicleDataSource: VehicleDataSource,
+    private val vehicleActions: VehicleActionsDataSource,
     @ApplicationScope appScope: CoroutineScope
 ) : VehicleRepository {
 
@@ -74,6 +77,15 @@ internal class FirestoreVehicleRepository @Inject constructor(
 
     override suspend fun getHistory(vehicleId: String, from: Instant, to: Instant): Result<List<VehiclePosition>> =
         suspendRunCatching { vehicleDataSource.fetchHistory(vehicleId, from, to) }
+
+    override suspend fun sendCommand(vehicleId: String, type: CommandType): Result<Unit> =
+        suspendRunCatching { vehicleActions.sendCommand(vehicleId, type) }
+
+    override suspend fun claimVehicle(imei: String, name: String?): Result<Unit> =
+        suspendRunCatching { vehicleActions.claim(imei.trim(), name?.trim()?.takeIf(String::isNotEmpty)) }
+
+    override suspend fun releaseVehicle(vehicleId: String): Result<Unit> =
+        suspendRunCatching { vehicleActions.release(vehicleId) }
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L

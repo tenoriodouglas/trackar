@@ -13,3 +13,18 @@ updates:
     directory: /
     schedule:
       interval: weekly
+  - package-ecosystem: npm
+    directories: ["/backend/functions", "/backend/bridge", "/web/admin"]
+    schedule:
+      interval: weekly
+    groups:
+      npm:
+        patterns: ["*"]
+  - package-ecosystem: docker
+    directory: /backend/bridge
+    schedule:
+      interval: weekly
+  - package-ecosystem: terraform
+    directory: /backend/infra
+    schedule:
+      interval: weekly

@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase-admin/app";
+import { getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { beforeEach, describe, expect, it } from "vitest";
 import { HISTORY, markStaleVehiclesOffline, savePosition, VEHICLES } from "../src/ingest.js";
@@ -6,7 +6,7 @@ import { parseForward } from "../src/traccar.js";
 
 // Runs only against the Firestore emulator (npm run test:emulator).
 const enabled = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
-const db = enabled ? getFirestore(initializeApp({ projectId: "demo-trackar" })) : undefined!;
+const db = enabled ? getFirestore(getApps()[0] ?? initializeApp({ projectId: "demo-trackar" })) : undefined!;
 
 const forward = (fixTime: string, latitude = -23.55) =>
   parseForward({ position: { fixTime, latitude, longitude: -46.63, speed: 20 }, device: { uniqueId: "imei-1", name: "Hilux" } });

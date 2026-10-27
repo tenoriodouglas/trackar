@@ -10,6 +10,9 @@ Tracker ─TCP/UDP─▶ Traccar (Compute Engine VM, static IP) ─HTTPS + token
 - **ingestPosition** validates the token, writes the latest fix to `vehicles/{imei}` (only if newer) and appends
   it to `vehicles/{imei}/positions/{fixTimeMs}` (idempotent, safe for retries). History expires via TTL (`expireAt`, 90 days).
 - **markOffline** flips vehicles to `offline` after 10 min without data.
+- **Bridge** (`backend/bridge`, container on the VM) listens to pending `commands` in Firestore and sends them
+  through Traccar's localhost API (no inbound port is opened). The VM pulls new bridge images every 5 minutes.
+- **Callables** (`sendCommand`, `claimVehicle`, `admin*`) validate ownership/admin role server-side.
 - Everything is provisioned by Terraform (`backend/infra`) and deployed by `.github/workflows/backend.yml`.
 
 ## One-time setup

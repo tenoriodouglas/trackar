@@ -1,5 +1,7 @@
 package app.trackar.core.firebase
 
+import app.trackar.core.model.CommandStatus
+import app.trackar.core.model.CommandType
 import app.trackar.core.model.DeviceStatus
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.GeoPoint
@@ -41,6 +43,35 @@ class VehicleDocumentMapperTest {
     fun `missing unique id falls back to document id`() {
         val vehicle = vehicleFromDocument("abc", document() - VehicleFields.UNIQUE_ID)!!
         assertEquals("abc", vehicle.uniqueId)
+    }
+
+    @Test
+    fun `block state and last command are mapped`() {
+        val data = document() + mapOf(
+            VehicleFields.ENGINE_BLOCKED to true,
+            VehicleFields.LAST_COMMAND to mapOf(
+                VehicleFields.COMMAND_TYPE to "engineStop",
+                VehicleFields.COMMAND_STATUS to "failed",
+                VehicleFields.COMMAND_ERROR to "unsupported",
+                VehicleFields.COMMAND_REQUESTED_AT to fixTime
+            )
+        )
+        val vehicle = vehicleFromDocument("1", data)!!
+        assertEquals(true, vehicle.engineBlocked)
+        assertEquals(CommandType.ENGINE_STOP, vehicle.lastCommand?.type)
+        assertEquals(CommandStatus.FAILED, vehicle.lastCommand?.status)
+        assertEquals("unsupported", vehicle.lastCommand?.errorCode)
+    }
+
+    @Test
+    fun `unknown command types are ignored`() {
+        val data =
+            document() +
+                (
+                    VehicleFields.LAST_COMMAND to
+                        mapOf(VehicleFields.COMMAND_TYPE to "reboot", VehicleFields.COMMAND_STATUS to "sent")
+                    )
+        assertNull(vehicleFromDocument("1", data)!!.lastCommand)
     }
 
     @Test
