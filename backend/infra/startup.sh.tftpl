@@ -2,6 +2,15 @@
 # Runs on every boot: installs Docker once, renders Traccar config with the secret, (re)starts the container.
 set -euo pipefail
 
+# 1 GB swap keeps the small VM stable under memory spikes.
+if [ ! -f /swapfile ]; then
+  fallocate -l 1G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+swapon /swapfile 2>/dev/null || true
+
 if ! command -v docker >/dev/null; then
   apt-get update
   apt-get install -y docker.io
@@ -38,6 +47,8 @@ XML
 docker pull "${traccar_image}"
 docker rm -f traccar >/dev/null 2>&1 || true
 docker run -d --name traccar --restart unless-stopped --network host \
+  --log-opt max-size=10m --log-opt max-file=3 \
+  -e JAVA_TOOL_OPTIONS="-Xms128m -Xmx${heap_mb}m" \
   -v /opt/traccar/data:/opt/traccar/data \
   -v /opt/traccar/logs:/opt/traccar/logs \
   -v /opt/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro \

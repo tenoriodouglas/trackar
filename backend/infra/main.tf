@@ -65,7 +65,7 @@ resource "google_project_iam_member" "traccar_observability" {
 
 resource "google_compute_address" "traccar" {
   name       = "traccar-ip"
-  region     = var.region
+  region     = var.vm_region
   depends_on = [google_project_service.services]
 }
 
@@ -112,8 +112,8 @@ resource "google_compute_instance" "traccar" {
   boot_disk {
     initialize_params {
       image = "debian-cloud/debian-12"
-      size  = 20
-      type  = "pd-balanced"
+      size  = 30
+      type  = "pd-standard" # Free-tier disk type.
     }
   }
 
@@ -134,6 +134,7 @@ resource "google_compute_instance" "traccar" {
     enable-oslogin = "TRUE"
     startup-script = templatefile("${path.module}/startup.sh.tftpl", {
       traccar_image = var.traccar_image
+      heap_mb       = var.traccar_heap_mb
       ingest_url    = local.ingest_url
       secret_name   = google_secret_manager_secret.ingest_token.secret_id
     })

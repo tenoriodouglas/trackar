@@ -34,9 +34,11 @@ Then link it to a user: **Actions → Register vehicle** (IMEI + user e-mail). T
 Not exposed publicly. Open a tunnel and browse http://localhost:8082:
 
 ```bash
-gcloud compute ssh traccar --zone southamerica-east1-a --tunnel-through-iap -- -N -L 8082:localhost:8082
+gcloud compute ssh traccar --zone us-east1-b --tunnel-through-iap -- -N -L 8082:localhost:8082
 ```
 
 ## Cost (estimate)
 
-e2-small VM + static IP in São Paulo ≈ US$ 20/month. Functions/Firestore stay near the free tier for small fleets.
+The VM runs on the GCP **free tier** (e2-micro + 30 GB standard disk in `us-east1`). The only fixed cost is the
+static IPv4 (≈ US$ 3.65/month). Functions, Firestore and Scheduler stay within the free quota for small fleets
+(e.g. ~20k Firestore writes/day ≈ 30 vehicles reporting every minute). Set a budget alert in Billing.

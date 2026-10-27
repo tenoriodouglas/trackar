@@ -4,21 +4,35 @@ variable "project_id" {
 }
 
 variable "region" {
-  description = "Region for the VM and Cloud Functions (São Paulo by default)."
+  description = "Region of the Cloud Functions (São Paulo, close to Firestore and users)."
   type        = string
   default     = "southamerica-east1"
 }
 
-variable "zone" {
-  description = "Zone for the Traccar VM."
+# Free tier: one e2-micro + 30 GB standard disk per billing account in us-east1/us-central1/us-west1.
+# Tracker latency to the US is irrelevant (fixes are sent every few seconds).
+variable "vm_region" {
+  description = "Region for the Traccar VM and its static IP."
   type        = string
-  default     = "southamerica-east1-a"
+  default     = "us-east1"
+}
+
+variable "zone" {
+  description = "Zone for the Traccar VM (must be inside vm_region)."
+  type        = string
+  default     = "us-east1-b"
 }
 
 variable "machine_type" {
-  description = "Traccar runs on the JVM; e2-small (2 GB) is the practical minimum."
+  description = "VM size. e2-micro (1 GB) is free-tier eligible; use e2-small for large fleets."
   type        = string
-  default     = "e2-small"
+  default     = "e2-micro"
+}
+
+variable "traccar_heap_mb" {
+  description = "JVM heap for Traccar; keep well below VM memory."
+  type        = number
+  default     = 384
 }
 
 variable "traccar_image" {
