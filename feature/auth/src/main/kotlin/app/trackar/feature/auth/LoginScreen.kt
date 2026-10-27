@@ -128,12 +128,12 @@ internal fun LoginScreen(
 
             uiState.error?.let { error ->
                 Text(
-                    text = stringResource(
-                        when (error) {
-                            LoginError.INVALID_CREDENTIALS -> R.string.feature_auth_error_credentials
-                            LoginError.NETWORK -> R.string.feature_auth_error_network
-                        }
-                    ),
+                    text = when (error) {
+                        LoginError.InvalidCredentials -> stringResource(R.string.feature_auth_error_credentials)
+                        LoginError.Network -> stringResource(R.string.feature_auth_error_network)
+                        LoginError.TooManyAttempts -> stringResource(R.string.feature_auth_error_too_many)
+                        is LoginError.Service -> stringResource(R.string.feature_auth_error_service, error.code)
+                    },
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium
                 )

@@ -8,4 +8,6 @@
     <string name="feature_auth_sign_in">Entrar</string>
     <string name="feature_auth_error_credentials">E-mail ou senha inválidos.</string>
     <string name="feature_auth_error_network">Não foi possível entrar. Verifique sua conexão e tente novamente.</string>
+    <string name="feature_auth_error_too_many">Muitas tentativas. Aguarde alguns minutos e tente de novo.</string>
+    <string name="feature_auth_error_service">Não foi possível entrar (código: %1$s).</string>
 </resources>

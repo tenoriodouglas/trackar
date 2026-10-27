@@ -10,4 +10,11 @@ data class LoginUiState(
         get() = !isLoading && email.isNotBlank() && password.isNotBlank()
 }
 
-enum class LoginError { INVALID_CREDENTIALS, NETWORK }
+sealed interface LoginError {
+    data object InvalidCredentials : LoginError
+    data object Network : LoginError
+    data object TooManyAttempts : LoginError
+
+    /** Unexpected provider error; the code is shown to help support diagnose it. */
+    data class Service(val code: String) : LoginError
+}

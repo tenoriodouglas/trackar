@@ -1,6 +1,8 @@
 package app.trackar.feature.auth
 
 import androidx.lifecycle.SavedStateHandle
+import app.trackar.core.model.AuthServiceException
+import app.trackar.core.model.InvalidCredentialsException
 import app.trackar.core.testing.MainDispatcherRule
 import app.trackar.core.testing.TestAuthRepository
 import java.io.IOException
@@ -52,7 +54,25 @@ class LoginViewModelTest {
         fillForm()
         viewModel.submit()
 
-        assertEquals(LoginError.NETWORK, viewModel.uiState.value.error)
+        assertEquals(LoginError.Network, viewModel.uiState.value.error)
+    }
+
+    @Test
+    fun `provider error code is surfaced`() = runTest {
+        authRepository.loginResult = Result.failure(AuthServiceException("ERROR_INTERNAL_ERROR"))
+        fillForm()
+        viewModel.submit()
+
+        assertEquals(LoginError.Service("ERROR_INTERNAL_ERROR"), viewModel.uiState.value.error)
+    }
+
+    @Test
+    fun `invalid credentials are surfaced`() = runTest {
+        authRepository.loginResult = Result.failure(InvalidCredentialsException())
+        fillForm()
+        viewModel.submit()
+
+        assertEquals(LoginError.InvalidCredentials, viewModel.uiState.value.error)
     }
 
     @Test

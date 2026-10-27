@@ -8,4 +8,6 @@
     <string name="feature_auth_sign_in">Sign in</string>
     <string name="feature_auth_error_credentials">Invalid email or password.</string>
     <string name="feature_auth_error_network">Could not sign in. Check your connection and try again.</string>
+    <string name="feature_auth_error_too_many">Too many attempts. Wait a few minutes and try again.</string>
+    <string name="feature_auth_error_service">Couldn\'t sign in (code: %1$s).</string>
 </resources>

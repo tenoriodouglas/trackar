@@ -4,7 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.trackar.core.data.repository.AuthRepository
+import app.trackar.core.model.AuthServiceException
 import app.trackar.core.model.InvalidCredentialsException
+import app.trackar.core.model.TooManyAttemptsException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,8 +53,12 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    private fun Throwable.toLoginError(): LoginError =
-        if (this is InvalidCredentialsException) LoginError.INVALID_CREDENTIALS else LoginError.NETWORK
+    private fun Throwable.toLoginError(): LoginError = when (this) {
+        is InvalidCredentialsException -> LoginError.InvalidCredentials
+        is TooManyAttemptsException -> LoginError.TooManyAttempts
+        is AuthServiceException -> LoginError.Service(code)
+        else -> LoginError.Network
+    }
 
     private companion object {
         const val KEY_EMAIL = "email"
