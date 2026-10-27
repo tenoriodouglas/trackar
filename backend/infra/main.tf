@@ -1,5 +1,6 @@
 locals {
   services = [
+    "iam.googleapis.com",
     "compute.googleapis.com",
     "iap.googleapis.com",
     "secretmanager.googleapis.com",
@@ -46,6 +47,7 @@ resource "google_secret_manager_secret_version" "ingest_token" {
 resource "google_service_account" "traccar" {
   account_id   = "traccar-vm"
   display_name = "Traccar gateway VM"
+  depends_on   = [google_project_service.services]
 }
 
 resource "google_secret_manager_secret_iam_member" "traccar_reads_token" {

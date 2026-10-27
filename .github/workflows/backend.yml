@@ -62,7 +62,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
@@ -97,13 +97,20 @@ jobs:
           project_id=$(echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode | jq -r '.project_info.project_id')
           echo "PROJECT_ID=$project_id" >> "$GITHUB_ENV"
 
-      - uses: google-github-actions/auth@v2
+      - uses: google-github-actions/auth@v3
         if: env.HAS_SECRETS == 'true'
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
-      - uses: google-github-actions/setup-gcloud@v2
+      - uses: google-github-actions/setup-gcloud@v3
         if: env.HAS_SECRETS == 'true'
+
+      # Terraform itself needs these APIs to manage services, IAM and the state bucket.
+      - name: Enable bootstrap APIs
+        if: env.HAS_SECRETS == 'true'
+        run: |
+          gcloud services enable serviceusage.googleapis.com cloudresourcemanager.googleapis.com \
+            iam.googleapis.com storage.googleapis.com --project "$PROJECT_ID"
 
       # Remote state lives in a versioned bucket created on first run.
       - name: Ensure Terraform state bucket
@@ -115,7 +122,7 @@ jobs:
             gcloud storage buckets update "$bucket" --versioning
           fi
 
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4
         if: env.HAS_SECRETS == 'true'
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
