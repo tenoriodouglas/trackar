@@ -26,7 +26,8 @@ export function Login() {
     <div className="center">
       <form className="card narrow login" onSubmit={submit}>
         <img src="/icon.svg" alt="" width={56} />
-        <h1>Trackar Admin</h1>
+        <h1>Trackar</h1>
+        <p className="muted">Rastreamento veicular em tempo real</p>
         <input type="email" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" required />
         <input type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
         {error && <p className="error">{error}</p>}

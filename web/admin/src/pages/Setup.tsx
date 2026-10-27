@@ -1,36 +1,20 @@
 import { doc, onSnapshot } from "firebase/firestore";
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import { adminApi, errorMessage, useServices } from "../api";
+import { useEffect, useState } from "react";
+import { useServices } from "../api";
+import { AddTrackerForm } from "../components/AddTrackerForm";
 import { APNS, DEVICE_PROFILES } from "../lib/devices";
 
 export function Setup() {
   const services = useServices();
-  const api = useMemo(() => adminApi(services), [services]);
   const [ip, setIp] = useState("…");
   const [profileId, setProfileId] = useState(DEVICE_PROFILES[0].id);
   const [apn, setApn] = useState(APNS[0].apn);
-  const [imei, setImei] = useState("");
-  const [name, setName] = useState("");
-  const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
 
   useEffect(
     () => onSnapshot(doc(services.db, "config", "server"), (snapshot) => setIp((snapshot.get("trackerIp") as string) ?? "(publicado no próximo deploy)")),
     [services.db],
   );
   const profile = DEVICE_PROFILES.find((p) => p.id === profileId)!;
-
-  const register = async (event: FormEvent) => {
-    event.preventDefault();
-    setMessage(null);
-    try {
-      await api.claimVehicle(imei.trim(), name.trim());
-      setMessage({ text: "Rastreador vinculado à sua conta. Para passar a outro cliente, use a aba Veículos → Donos." });
-      setImei("");
-      setName("");
-    } catch (error) {
-      setMessage({ text: errorMessage(error), error: true });
-    }
-  };
 
   return (
     <div className="setup">
@@ -77,13 +61,8 @@ export function Setup() {
 
       <div className="card">
         <h2>3. Vincular à conta</h2>
-        <p>O IMEI (15 dígitos) está na etiqueta do rastreador. O cliente também pode fazer isso no app (Veículos → Adicionar rastreador).</p>
-        <form className="row" onSubmit={register}>
-          <input placeholder="IMEI" value={imei} onChange={(e) => setImei(e.target.value.replace(/\D/g, ""))} required minLength={4} />
-          <input placeholder="Nome (ex.: Hilux ABC1D23)" value={name} onChange={(e) => setName(e.target.value)} />
-          <button type="submit">Vincular</button>
-        </form>
-        {message && <p className={message.error ? "error" : "ok"}>{message.text}</p>}
+        <p>O IMEI (15 dígitos) está na etiqueta do rastreador. O cliente também pode fazer isso no app ou no site (Meus veículos → Adicionar rastreador).</p>
+        <AddTrackerForm hint="Rastreador vinculado à sua conta. Para passar a outro cliente, use a aba Frota → Donos." />
       </div>
 
       <div className="card">

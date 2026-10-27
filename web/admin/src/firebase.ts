@@ -1,7 +1,7 @@
 import { FirebaseApp, initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getFunctions } from "firebase/functions";
+import { connectAuthEmulator, getAuth } from "firebase/auth";
+import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
+import { connectFunctionsEmulator, getFunctions } from "firebase/functions";
 
 /** Must match the functions' REGION parameter (backend/functions/.env). */
 const FUNCTIONS_REGION = "southamerica-east1";
@@ -27,5 +27,12 @@ export interface Services {
 
 export async function initServices(): Promise<Services> {
   const app = initializeApp(await loadConfig());
-  return { app, auth: getAuth(app), db: getFirestore(app), functions: getFunctions(app, FUNCTIONS_REGION) };
+  const services = { app, auth: getAuth(app), db: getFirestore(app), functions: getFunctions(app, FUNCTIONS_REGION) };
+  // Local development against `firebase emulators:start` (ports from firebase.json).
+  if (import.meta.env.VITE_USE_EMULATORS === "true") {
+    connectAuthEmulator(services.auth, "http://127.0.0.1:9099", { disableWarnings: true });
+    connectFirestoreEmulator(services.db, "127.0.0.1", 8080);
+    connectFunctionsEmulator(services.functions, "127.0.0.1", 5001);
+  }
+  return services;
 }

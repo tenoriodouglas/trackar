@@ -1,9 +1,9 @@
-import { collection, onSnapshot } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import { adminApi, errorMessage, useServices } from "../api";
+import { CommandControls } from "../components/CommandControls";
 import { FleetMap } from "../components/FleetMap";
-import { commandLabel, relativeTime } from "../lib/format";
-import { AdminUser, CommandType, VehicleDoc } from "../lib/types";
+import { relativeTime } from "../lib/format";
+import { AdminUser, VehicleDoc } from "../lib/types";
 
 const CATEGORIES: [string, string][] = [
   ["car", "Carro"],
@@ -14,26 +14,15 @@ const CATEGORIES: [string, string][] = [
   ["other", "Outro"],
 ];
 
-export function Vehicles() {
+/** Admin fleet view: every vehicle, owners, commands and maintenance. */
+export function Vehicles({ vehicles, onOpenHistory }: { vehicles: VehicleDoc[]; onOpenHistory: (vehicleId: string) => void }) {
   const services = useServices();
   const api = useMemo(() => adminApi(services), [services]);
-  const [vehicles, setVehicles] = useState<VehicleDoc[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [query, setQuery] = useState("");
   const [onlyUnassigned, setOnlyUnassigned] = useState(false);
   const [selected, setSelected] = useState<VehicleDoc | null>(null);
 
-  useEffect(
-    () =>
-      onSnapshot(collection(services.db, "vehicles"), (snapshot) =>
-        setVehicles(
-          snapshot.docs
-            .map((d) => ({ id: d.id, ...(d.data() as Omit<VehicleDoc, "id">) }))
-            .sort((a, b) => (a.name ?? a.id).localeCompare(b.name ?? b.id)),
-        ),
-      ),
-    [services.db],
-  );
   useEffect(() => {
     api.listUsers().then(setUsers, () => setUsers([]));
   }, [api]);
@@ -103,7 +92,15 @@ export function Vehicles() {
           <FleetMap vehicles={filtered} onSelect={setSelected} />
         </div>
       </section>
-      {current && <VehiclePanel vehicle={current} emailOf={emailOf} onClose={() => setSelected(null)} api={api} />}
+      {current && (
+        <VehiclePanel
+          vehicle={current}
+          emailOf={emailOf}
+          onClose={() => setSelected(null)}
+          onOpenHistory={() => onOpenHistory(current.id)}
+          api={api}
+        />
+      )}
     </div>
   );
 }
@@ -121,11 +118,13 @@ function VehiclePanel({
   vehicle,
   emailOf,
   onClose,
+  onOpenHistory,
   api,
 }: {
   vehicle: VehicleDoc;
   emailOf: Map<string, string>;
   onClose: () => void;
+  onOpenHistory: () => void;
   api: ReturnType<typeof adminApi>;
 }) {
   const [name, setName] = useState(vehicle.name ?? "");
@@ -147,11 +146,6 @@ function VehiclePanel({
     }
   };
 
-  const command = (type: CommandType) => {
-    const verb = type === "engineStop" ? "BLOQUEAR" : "desbloquear";
-    if (window.confirm(`Confirmar: ${verb} ${vehicle.name}?`)) void run(() => api.sendCommand(vehicle.id, type), "Comando enviado.");
-  };
-
   const position = vehicle.position;
   return (
     <aside className="panel card">
@@ -171,26 +165,10 @@ function VehiclePanel({
       )}
 
       <h3>Bloqueio remoto</h3>
-      <p>
-        Estado: <b>{vehicle.engineBlocked ? "bloqueado" : vehicle.engineBlocked === false ? "liberado" : "nunca acionado"}</b>
-        {vehicle.lastCommand && (
-          <>
-            <br />
-            <span className="muted">
-              Último comando: {vehicle.lastCommand.type === "engineStop" ? "bloquear" : "desbloquear"} —{" "}
-              {commandLabel(vehicle.lastCommand.status, vehicle.lastCommand.errorCode)}
-            </span>
-          </>
-        )}
-      </p>
-      <div className="row">
-        <button className="danger" disabled={busy} onClick={() => command("engineStop")}>
-          Bloquear
-        </button>
-        <button disabled={busy} onClick={() => command("engineResume")}>
-          Desbloquear
-        </button>
-      </div>
+      <CommandControls vehicle={vehicle} />
+      <button className="ghost" onClick={onOpenHistory}>
+        Ver histórico
+      </button>
 
       <h3>Dados</h3>
       <label>

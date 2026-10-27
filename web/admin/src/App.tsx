@@ -1,20 +1,21 @@
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { useEffect, useState } from "react";
-import { ServicesContext } from "./api";
+import { ServicesContext, useServices } from "./api";
 import { initServices, Services } from "./firebase";
+import { useVehicles } from "./lib/useVehicles";
+import { History } from "./pages/History";
 import { Login } from "./pages/Login";
+import { MyVehicles } from "./pages/MyVehicles";
 import { Setup } from "./pages/Setup";
 import { Users } from "./pages/Users";
 import { Vehicles } from "./pages/Vehicles";
 
-type Tab = "vehicles" | "users" | "setup";
 type AuthState = { status: "loading" } | { status: "signedOut" } | { status: "signedIn"; user: User; admin: boolean };
 
 export function App() {
   const [services, setServices] = useState<Services | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
   const [auth, setAuth] = useState<AuthState>({ status: "loading" });
-  const [tab, setTab] = useState<Tab>("vehicles");
 
   useEffect(() => {
     initServices().then(setServices, (e) => setInitError(String(e)));
@@ -35,50 +36,72 @@ export function App() {
 
   return (
     <ServicesContext.Provider value={services}>
-      {auth.status === "signedOut" ? (
-        <Login />
-      ) : !auth.admin ? (
-        <div className="center card narrow">
-          <h2>Acesso restrito</h2>
-          <p>
-            A conta <b>{auth.user.email}</b> não é administradora. No GitHub, rode <b>Actions → Set admin</b> com
-            este e-mail e entre de novo.
-          </p>
-          <button onClick={() => signOut(services.auth)}>Sair</button>
-        </div>
-      ) : (
-        <div className="layout">
-          <header className="topbar">
-            <div className="brand">
-              <img src="/icon.svg" alt="" /> Trackar <span>Admin</span>
-            </div>
-            <nav>
-              {(
-                [
-                  ["vehicles", "Veículos"],
-                  ["users", "Usuários"],
-                  ["setup", "Configurar rastreador"],
-                ] as [Tab, string][]
-              ).map(([id, label]) => (
-                <button key={id} className={tab === id ? "tab active" : "tab"} onClick={() => setTab(id)}>
-                  {label}
-                </button>
-              ))}
-            </nav>
-            <div className="who">
-              {auth.user.email}
-              <button className="ghost" onClick={() => signOut(services.auth)}>
-                Sair
-              </button>
-            </div>
-          </header>
-          <main>
-            {tab === "vehicles" && <Vehicles />}
-            {tab === "users" && <Users />}
-            {tab === "setup" && <Setup />}
-          </main>
-        </div>
-      )}
+      {auth.status === "signedOut" ? <Login /> : <Shell email={auth.user.email ?? ""} admin={auth.admin} />}
     </ServicesContext.Provider>
+  );
+}
+
+type Tab = "mine" | "fleet" | "history" | "users" | "setup";
+
+/** Same site for everyone: clients see their own vehicles, admins also get fleet management. */
+function Shell({ email, admin }: { email: string; admin: boolean }) {
+  const services = useServices();
+  const [tab, setTab] = useState<Tab>(admin ? "fleet" : "mine");
+  const [historyVehicle, setHistoryVehicle] = useState<string | undefined>();
+  const mine = useVehicles("mine");
+  const all = useVehicles(admin ? "all" : "mine");
+
+  const tabs: [Tab, string][] = admin
+    ? [
+        ["fleet", "Frota"],
+        ["mine", "Meus veículos"],
+        ["history", "Histórico"],
+        ["users", "Usuários"],
+        ["setup", "Configurar rastreador"],
+      ]
+    : [
+        ["mine", "Meus veículos"],
+        ["history", "Histórico"],
+      ];
+
+  const openHistory = (vehicleId: string) => {
+    setHistoryVehicle(vehicleId);
+    setTab("history");
+  };
+
+  return (
+    <div className="layout">
+      <header className="topbar">
+        <div className="brand">
+          <img src="/icon.svg" alt="" /> Trackar {admin && <span>Admin</span>}
+        </div>
+        <nav>
+          {tabs.map(([id, label]) => (
+            <button key={id} className={tab === id ? "tab active" : "tab"} onClick={() => setTab(id)}>
+              {label}
+            </button>
+          ))}
+        </nav>
+        <div className="who">
+          {email}
+          <button className="ghost" onClick={() => signOut(services.auth)}>
+            Sair
+          </button>
+        </div>
+      </header>
+      <main>
+        {!mine || !all ? (
+          <div className="muted">Carregando veículos…</div>
+        ) : (
+          <>
+            {tab === "mine" && <MyVehicles vehicles={mine} onOpenHistory={openHistory} />}
+            {tab === "history" && <History key={historyVehicle} vehicles={all} initialVehicleId={historyVehicle} />}
+            {admin && tab === "fleet" && <Vehicles vehicles={all} onOpenHistory={openHistory} />}
+            {admin && tab === "users" && <Users />}
+            {admin && tab === "setup" && <Setup />}
+          </>
+        )}
+      </main>
+    </div>
   );
 }
