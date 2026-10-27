@@ -2,6 +2,10 @@
 
 Rastreamento veicular em tempo real para dispositivos M2M/GPS. Android nativo.
 
+> **Trackar** (com *k*) é este produto: app, painel e backend.
+> **Traccar** (com *cc*) é o servidor open source de terceiros ([traccar.org](https://www.traccar.org)) que roda
+> na VM e decodifica os protocolos dos rastreadores. "Traccar Client" é o app deles, usado aqui só para testes.
+
 ## Funcionalidades
 
 - **Mapa ao vivo estilo navegação:** carros como setas que giram conforme o rumo e deslizam entre as
