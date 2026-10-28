@@ -74,6 +74,8 @@ Depois do push, acompanhar os workflows até ficarem verdes.
 - Projeto GCP novo vem com APIs desligadas: o workflow habilita as APIs base (`iam`, `cloudresourcemanager`,
   `serviceusage`, `storage`) antes do Terraform.
 - O `google-services.json` precisa conter **os dois pacotes** (release e `.debug`).
+- A APK de teste é assinada com `app/debug.keystore` (versionado de propósito). Sem chave fixa, cada build do CI
+  teria assinatura nova e o Android recusaria a atualização ("conflito com pacote existente").
 - APK instalada antes dos secrets usava Firebase placeholder: desinstalar e instalar de novo resolve.
 - Strings Android com apóstrofo precisam de escape (`don\'t`).
 - `ktlint` (estilo android_studio) remove vírgulas finais; rode `spotlessApply` antes de editar trechos copiados.

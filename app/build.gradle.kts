@@ -30,6 +30,14 @@ android {
     }
 
     signingConfigs {
+        // Fixed debug key (committed on purpose): CI runners would otherwise generate a new one per build,
+        // and Android refuses to update an app signed with a different key. Grants nothing in production.
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
         if (releaseKeystore != null) {
             create("release") {
                 storeFile = releaseKeystore
