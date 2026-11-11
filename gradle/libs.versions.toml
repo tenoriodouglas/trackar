@@ -21,7 +21,7 @@ serialization = "1.12.0"
 mapsCompose = "9.0.1"
 junit = "4.13.2"
 turbine = "1.2.1"
-mockk = "1.14.11"
+mockk = "1.14.12"
 spotless = "8.10.4"
 ktlint = "1.8.0"
 
