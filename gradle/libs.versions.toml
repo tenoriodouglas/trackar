@@ -22,7 +22,7 @@ mapsCompose = "9.0.1"
 junit = "4.13.2"
 turbine = "1.2.1"
 mockk = "1.14.11"
-spotless = "8.10.4"
+spotless = "8.11.0"
 ktlint = "1.8.0"
 
 [libraries]
